@@ -1,0 +1,2 @@
+requests==2.9.1
+markdown2==2.3.1
