@@ -122,7 +122,7 @@ class EvernoteController(object):
         self.storage.move_note(noteFullPath, _to)
         return True
     def delete_note(self, noteFullPath):
-        if self.get(noteFullPath): return False
+        if self.get(noteFullPath) is None: return False
         if type(self.get(noteFullPath)) != type(Types.Note()): raise Exception('Types Error')
         if self.isSpecialToken:
             self.noteStore.expungeNote(self.token, self.get(noteFullPath).guid)
@@ -152,7 +152,8 @@ if __name__ == '__main__':
     # In China it's https://app.yinxiang.com/api/DeveloperToken.action <<
     token = 'S=s1:U=91eca:E=15be6680420:C=1548eb6d760:P=1cd:A=en-devtoken:V=2:H=026e6ff5f5d0753eb37146a1b4660cc9'
     e = EvernoteController(token, True, True)
-    e.update_note('Hello', 'Test', 'Changed', 'README.md')
+    # e.update_note('Hello', 'Test', 'Changed', 'README.md')
+    e.create_note('Test/中文', 'Chinese')
 
 if False:
     e.create_notebook('Notebook1')
