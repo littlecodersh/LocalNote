@@ -18,7 +18,8 @@ class EvernoteController(object):
         self.isSpecialToken = isSpecialToken
         self.userStore = self.client.get_user_store()
         self.noteStore = self.client.get_note_store()
-        self.storage = Storage(self.token, self.noteStore)
+        self.storage = Storage()
+        self.storage.update(self.token, self.noteStore)
     def create_notebook(self, title):
         if self.get(title): return False
         notebook = Types.Notebook()

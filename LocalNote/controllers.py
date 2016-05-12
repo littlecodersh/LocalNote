@@ -1,4 +1,4 @@
-import os
+import os, time
 
 from local.storage import Storage as LocalStorage
 from evernoteapi.storage import Storage as EvernoteStorage
@@ -72,22 +72,31 @@ class Controller(object):
         for nbName in noteDict.keys(): r.append((nbName, 0))
         self.changesList = r
         return r
-    def download_files(self, update = True):
+    def download_notes(self, update = True):
         if not self.available: return False
-        def _download_file(nbName, nName):
+        def _download_note(nbName, nName):
             attachmentDict = self.ec.get_attachment(nbName+'/'+nName)
-            if '%s.md'%nName in attachmentDict.keys():
-                content = attachmentDict['%s.md'%nName]
+            if '%s.md'%nName in attachmentDict.keys(): # has been edited in localnote
+                if 1 < len(attachmentDict): # has other attachments
+                    for attaName, content in attachmentDict.iteritems():
+                        self.ls.write_file(nbName+'/'+nName+'/'+os.path.splitext(attaName)[0], content, os.path.splitext(attaName)[1])
+                else: # only have content
+                    self.ls.write_file(nbName+'/'+nName, attachmentDict['%s.md'%nName])
             else:
-                content = self.ec.get_content(nbName+'/'+nName)
-            self.ls.write_file(os.path.join(nbName, nName), content)
+                if attachmentDict: # has attachment
+                    for attaName, content in attachmentDict.iteritems():
+                        self.ls.write_file(nbName+'/'+nName+'/'+os.path.splitext(attaName)[0], content, os.path.splitext(attaName)[1])
+                    self.ls.write_file(nbName+'/'+nName+'/'+nName, self.ec.get_content(nbName+'/'+nName), '.txt')
+                else:
+                    self.ls.write_file(nbName+'/'+nName, self.ec.get_content(nbName+'/'+nName), '.txt')
         noteDict = self.es.get_note_dict()
-        for fileFullPath, status in self.__get_changes(update):
+        for noteFullPath, status in self.__get_changes(update):
             if status not in (-1, 0): continue
-            if '/' in fileFullPath:
-                _download_file(*fileFullPath.split('/'))
+            if '/' in noteFullPath:
+                _download_note(*noteFullPath.split('/'))
             else:
-                for notes in noteDict[fileFullPath]: _download_file(fileFullPath, notes[0])
+                self.ls.write_file(noteFullPath, '', '')
+                for notes in noteDict[noteFullPath]: _download_note(noteFullPath, notes[0])
         return True
     def upload_file(self, update = True):
         if not self.available: return False

@@ -68,7 +68,7 @@ class Storage():
         noteDict = {}
         for nbName, nb in self.storage.iteritems():
             noteDict[nbName] = []
-            for nName, n in nb['notes']:
+            for nName, n in nb['notes'].iteritems():
                 noteDict[nbName].append((nName, n.updated / 1000))
         return noteDict
     def show_notebook(self):
