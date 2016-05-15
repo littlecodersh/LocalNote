@@ -1,5 +1,8 @@
 import os, time
 
+import chardet
+from markdown2 import markdown
+
 from local.storage import Storage as LocalStorage
 from evernoteapi.storage import Storage as EvernoteStorage
 from evernoteapi.controller import EvernoteController
@@ -115,28 +118,41 @@ class Controller(object):
         return True
     def upload_file(self, update = True):
         if not self.available: return False
-        noteDict = self.es.get_note_dict()
-        for fileFullPath, status in self.__get_changes(update):
+        def encode_content(content):
+            try:
+                content.decode('utf8')
+            except:
+                try:
+                    content = content.decode(chardet.detect(content)).encode('utf8')
+                except:
+                    # DEBUG
+                    print('Encode failed')
+                    content = 'Upload encode failed, I\'m sorry! Please contact i7meavnktqegm1b@qq.com with this file.'
+            return content
+        def _upload_file(noteFullPath, attachmentDict):
+            nbName, nName = noteFullPath.split('/')
+            if not attachmentDict:
+                self.ec.delete_note(noteFullPath)
+            elif nName + '.md' in attachmentDict.keys():
+                content = encode_content(attachmentDict[nName+'.md'])
+                self.ec.update_note(noteFullPath, markdown(content), attachmentDict)
+            elif nName + '.txt' in attachmentDict.keys():
+                content = encode_content(attachmentDict[nName+'.txt'])
+                del attachmentDict[nName + '.txt']
+                self.ec.update_note(noteFullPath, content, attachmentDict)
+        for noteFullPath, status in self.__get_changes(update):
             if status not in (1, 0): continue
-            if '/' in fileFullPath:
-                nbName, nName = fileFullPath.split('/')
-                for postfix in ('.md', '.txt', ''):
-                    content = get_file(fileFullPath + '.md')
-                    if content is None: continue
-                    if postfix == '.md':
-                        self.ec.update_note(fileFullPath, content, os.path.join(nbName, nName+'.md'))
-                    else:
-                        self.ec.update_note(fileFullPath, content)
-                else:
-                    self.ec.delete_note(fileFullPath)
+            if '/' in noteFullPath:
+                attachmentDict = self.ls.read_note(noteFullPath)
+                _upload_file(noteFullPath, attachmentDict)
             else:
-                if os.path.exists(fileFullPath):
-                    self.ec.create_notebook(fileFullPath)
-                    for note in self.ls.get_file_dict()[fileFullPath]:
-                        content, isMd = self.ls.get_file(fileFullPath+'/'+note[0])
-                        self.ec.update_note(fileFullPath+'/'+note[0], content, fileFullPath+'/'+note[0] if isMd else None)
+                if os.path.exists(noteFullPath):
+                    self.ec.create_notebook(noteFullPath)
+                    for note in self.ls.get_file_dict()[noteFullPath]:
+                        attachmentDict = self.ls.read_note(noteFullPath+'/'+note[0])
+                        _upload_file(noteFullPath+'/'+note[0], attachmentDict)
                 else:
-                    self.ec.delete_notebook(fileFullPath)
+                    self.ec.delete_notebook(noteFullPath)
         self.__get_changes(update = True)
         return True
 

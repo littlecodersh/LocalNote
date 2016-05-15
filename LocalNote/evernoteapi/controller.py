@@ -1,5 +1,6 @@
 #coding=utf8
-import sys, hashlib, re, time
+import sys, hashlib, re, time, mimetypes
+
 import evernote.edam.type.ttypes as Types
 import evernote.edam.notestore.NoteStore as NoteStore
 from evernote.api.client import EvernoteClient
@@ -26,7 +27,7 @@ class EvernoteController(object):
         notebook = self.noteStore.createNotebook(notebook)
         self.storage.create_notebook(notebook)
         return True
-    def create_note(self, noteFullPath, content = None, fileDir = None):
+    def create_note(self, noteFullPath, content = None, fileDict = {}):
         if self.get(noteFullPath): return False
         if '/' in noteFullPath:
             notebook = noteFullPath.split('/')[0]
@@ -41,28 +42,29 @@ class EvernoteController(object):
         note.content += content or ''
         if self.get(notebook) is None: self.create_notebook(notebook)
         note.notebookGuid = self.get(notebook).guid
-        if not fileDir is None:
-            with open(fileDir, 'rb') as f: fileBytes = f.read()
-            fileData = Types.Data()
-            fileData.bodyHash = self._md5(fileBytes)
-            fileData.size = len(fileBytes)
-            fileData.body = fileBytes
-            fileAttr = Types.ResourceAttributes()
-            fileAttr.fileName = title + '.md'
-            fileAttr.attachment = True
-            fileResource = Types.Resource()
-            fileResource.data = fileData
-            fileResource.mime = 'application/octet-stream'
-            fileResource.attributes = fileAttr
-            note.resources = [fileResource]
-            note.content += '<en-media type="application/octet-stream" hash="%s"/>'%fileData.bodyHash
+        if fileDict:
+            note.resources = []
+            for fileName, fileBytes in fileDict.iteritems():
+                fileData = Types.Data()
+                fileData.bodyHash = self._md5(fileBytes)
+                fileData.size = len(fileBytes)
+                fileData.body = fileBytes
+                fileAttr = Types.ResourceAttributes()
+                fileAttr.fileName = fileName
+                fileAttr.attachment = True
+                fileResource = Types.Resource()
+                fileResource.data = fileData
+                fileResource.mime = mimetypes.guess_type(fileName)[0] or 'application/octet-stream'
+                fileResource.attributes = fileAttr
+                note.resources.append(fileResource)
+                note.content += '<en-media type="%s" hash="%s"/>'%(fileResource.mime, fileData.bodyHash)
         note.content += '</en-note>'
         note = self.noteStore.createNote(note)
         self.storage.create_note(note, notebook)
         return True
-    def update_note(self, noteFullPath, content = None, fileDir = None):
+    def update_note(self, noteFullPath, content = None, fileDict = {}):
         note = self.get(noteFullPath)
-        if note is None: return self.create_note(noteFullPath, content or '', fileDir)
+        if note is None: return self.create_note(noteFullPath, content or '', fileDict)
         if '/' in noteFullPath:
             notebook = noteFullPath.split('/')[0]
             title = noteFullPath.split('/')[1]
@@ -79,21 +81,22 @@ class EvernoteController(object):
         note.content = header
         note.content += '<en-note>'
         note.content += content or oldContent
-        if not fileDir is None:
-            with open(fileDir, 'rb') as f: fileBytes = f.read()
-            fileData = Types.Data()
-            fileData.bodyHash = self._md5(fileBytes)
-            fileData.size = len(fileBytes)
-            fileData.body = fileBytes
-            fileAttr = Types.ResourceAttributes()
-            fileAttr.fileName = title + '.md'
-            fileAttr.attachment = True
-            fileResource = Types.Resource()
-            fileResource.data = fileData
-            fileResource.mime = 'application/octet-stream'
-            fileResource.attributes = fileAttr
-            note.resources = [fileResource]
-            note.content += '<en-media type="application/octet-stream" hash="%s"/>'%fileData.bodyHash
+        if fileDict:
+            note.resources = []
+            for fileName, fileBytes in fileDict.iteritems():
+                fileData = Types.Data()
+                fileData.bodyHash = self._md5(fileBytes)
+                fileData.size = len(fileBytes)
+                fileData.body = fileBytes
+                fileAttr = Types.ResourceAttributes()
+                fileAttr.fileName = fileName
+                fileAttr.attachment = True
+                fileResource = Types.Resource()
+                fileResource.data = fileData
+                fileResource.mime = mimetypes.guess_type(fileName)[0] or 'application/octet-stream'
+                fileResource.attributes = fileAttr
+                note.resources.append(fileResource)
+                note.content += '<en-media type="%s" hash="%s"/>'%(fileResource.mime, fileData.bodyHash)
         note.content += '</en-note>'
         self.noteStore.updateNote(self.token, note)
         self.storage.delete_note(noteFullPath)
