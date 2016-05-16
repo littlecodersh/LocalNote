@@ -24,9 +24,16 @@ class EvernoteController(object):
         if self.get(title): return False
         notebook = Types.Notebook()
         notebook.name = title
-        notebook = self.noteStore.createNotebook(notebook)
-        self.storage.create_notebook(notebook)
-        return True
+        try:
+            notebook = self.noteStore.createNotebook(notebook)
+        except EDAMUserException, e:
+            if e.errorCode == 10 and e.parameter == 'Notebook.name':
+                return True
+            else:
+                raise e
+        else:
+            self.storage.create_notebook(notebook)
+            return True
     def create_note(self, noteFullPath, content = None, fileDict = {}):
         if self.get(noteFullPath): return False
         if '/' in noteFullPath:
@@ -39,6 +46,7 @@ class EvernoteController(object):
         note.title = title
         note.content = '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">'
         note.content += '<en-note>'
+        content = re.sub('<en-media.*?/>', '', content)
         note.content += content or ''
         if self.get(notebook) is None: self.create_notebook(notebook)
         note.notebookGuid = self.get(notebook).guid
@@ -107,13 +115,16 @@ class EvernoteController(object):
         if note is None: return
         r = self.noteStore.getNoteContent(note.guid)
         try:
-            content = re.compile('.*?<en-note>(.*?)</en-note>').findall(r)[0]
+            content = re.compile('[\s\S]*?<en-note>([\s\S]*?)</en-note>').findall(r)[0]
         except:
             content = ''
         return content
     def get_attachment(self, noteFullPath):
         note = self.get(noteFullPath)
-        return {resource.attributes.fileName: self.noteStore.getResourceData(resource.guid) for resource in (note.resources or {})}
+        attachmentDict = {}
+        for resource in (self.noteStore.getNote(note.guid, False, True, False, False).resources or {}):
+            attachmentDict[resource.attributes.fileName] = resource.data.body
+        return attachmentDict
     def move_note(self, noteFullPath, _to):
         if self.get(noteFullPath) is None: return False
         if type(self.get(noteFullPath)) != type(Types.Note()) or type(self.get(_to)) != type(Types.Notebook()): raise Exception('Type Error')
@@ -134,7 +145,7 @@ class EvernoteController(object):
         self.storage.delete_note(noteFullPath)
         return True
     def delete_notebook(self, notebook):
-        if self.get(notebook) or not self.isSpecialToken: return False
+        if not self.get(notebook) or not self.isSpecialToken: return False
         if type(self.get(notebook)) != type(Types.Notebook()): raise Exception('Types Error')
         self.noteStore.expungeNotebook(self.token, self.get(notebook).guid)
         self.storage.delete_notebook(notebook)

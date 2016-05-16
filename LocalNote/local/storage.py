@@ -57,10 +57,10 @@ class Storage(object):
                     attachmentDict[self.__str_l2c(attachment)] = f.read()
         else:
             fileList = os.walk(join(*self.__str_c2l(noteFullPath).split('/')[:-1])).next()[2]
-            for postfix in ('.md', '.txt'):
-                fName = noteFullPath.split('/')[:-1] + postfix
+            for postfix in ('.md', '.html'):
+                fName = noteFullPath.split('/')[-1] + postfix
                 if self.__str_c2l(fName) in fileList:
-                    with open(join(*self.__str_c2l(noteFullPath+postfix))) as f:
+                    with open(join(*self.__str_c2l(fName))) as f:
                         attachmentDict[fName] = f.read()
         return attachmentDict
     def write_note(self, noteFullPath, contentDict = {}):
@@ -68,7 +68,7 @@ class Storage(object):
             nbName, nName = self.__str_c2l(noteFullPath).split('/')
             # clear environment
             if exists(nbName):
-                for postfix in ('.md', '.txt'):
+                for postfix in ('.md', '.html'):
                     if exists(join(nbName, nName+postfix)): os.remove(join(nbName, nName+postfix))
                 if exists(join(nbName, nName)):
                     for fName in os.walk(join(nbName, nName)).next()[2]:
@@ -99,16 +99,6 @@ class Storage(object):
                             os.remove(join(noteFullPath, fName, dName))
                         os.rmdir(join(noteFullPath, fName))
                     os.rmdir(noteFullPath)
-    def write_file(self, noteFullPath, content, postfix = '.md'):
-        if len(noteFullPath.split('/')) < 1: return False
-        if not exists(self.__str_c2l(noteFullPath.split('/')[0])):
-            os.mkdir(self.__str_c2l(noteFullPath.split('/')[0]))
-        try:
-            noteFullPath += postfix
-            with open(self.__str_c2l(join(*noteFullPath.split('/'))), 'wb') as f: f.write(content)
-            return True
-        except:
-            return False
     def get_file_dict(self):
         fileDict = {}
         for nbName in os.walk('.').next()[1]: # get folders
