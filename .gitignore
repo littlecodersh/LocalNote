@@ -1,7 +1,5 @@
 build/*
 dist/*
 LocalNote.egg-info/*
-LocalNote/user.cfg
-LocalNote/run.py
 *.pyc
 *.swp

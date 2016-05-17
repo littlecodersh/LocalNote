@@ -1,4 +1,4 @@
-""" A NetEase cloud music api project
+""" A command line tool to use evernote locally
 See:
 https://github.com/littlecodersh/LocalNote
 """
@@ -48,10 +48,15 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=['LocalNote',],
+    packages=find_packages(),
 
     install_requires=['requests', 'markdown2'],
 
     # List additional groups of dependencies here
     extras_require={},
+    entry_points={
+        'console_scripts':[
+            'localnote = LocalNote.main:main'
+        ]
+    },
 )

@@ -24,16 +24,14 @@ class Controller(object):
             return True, ec
         except:
             return False, None
-    def log_in(self, interAct = True, config = {}):
-        if interAct:
-            pass
-        else:
-            if config.get('token') is not None: self.token = config.get('token')
-            if config.get('isSpecialToken') is not None: self.isSpecialToken = config.get('isSpecialToken')
-            if config.get('sandbox') is not None: self.sandbox = config.get('sandbox')
-            if config.get('isInternational') is not None: self.isInternational = config.get('isInternational')
-            if config.get('expireTime') is not None: self.expireTime = config.get('expireTime')
-            if config.get('lastUpdate') is not None: self.lastUpdate = config.get('lastUpdate')
+    def log_in(self, config = {}, **kwargs):
+        config = dict(config, **kwargs)
+        if config.get('token') is not None: self.token = config.get('token')
+        if config.get('isSpecialToken') is not None: self.isSpecialToken = config.get('isSpecialToken')
+        if config.get('sandbox') is not None: self.sandbox = config.get('sandbox')
+        if config.get('isInternational') is not None: self.isInternational = config.get('isInternational')
+        if config.get('expireTime') is not None: self.expireTime = config.get('expireTime')
+        if config.get('lastUpdate') is not None: self.lastUpdate = config.get('lastUpdate')
         available, ec = self.__check_available()
         if available:
             self.available = True
@@ -79,7 +77,6 @@ class Controller(object):
         for nbName in noteDict.keys(): r.append((nbName, 0))
         self.changesList = r
         return r
-    # DEBUG
     def get_changes(self):
         return self.__get_changes(True)
     def download_notes(self, update = True):

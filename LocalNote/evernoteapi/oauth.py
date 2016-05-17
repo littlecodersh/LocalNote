@@ -1,8 +1,11 @@
 import requests, getpass
 
+CONSUMER_KEY = 'littlecodersh1259'
+CONSUMER_SECRET = '39cf81a16bcfb160'
+
 class Oauth(object):
-    def __init__(self, consumerKey, consumerSecret, sandbox = True, isInternational = False):
-        if sanbox:
+    def __init__(self, consumerKey = CONSUMER_KEY, consumerSecret = CONSUMER_SECRET, sandbox = True, isInternational = False):
+        if sandbox:
             self.host = 'sandbox.evernote.com'
         elif isInternational:
             self.host = 'app.evernote.com'

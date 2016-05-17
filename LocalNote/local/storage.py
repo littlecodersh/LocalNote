@@ -2,8 +2,6 @@ import json, os, time, sys
 from os.path import join, exists
 import chardet
 
-from evernoteapi import EvernoteController
-
 CONFIG_DIR = 'user.cfg'
 
 # fileDictFormat: {
@@ -85,7 +83,7 @@ class Storage(object):
             else:
                 if not exists(join(nbName, nName)): os.mkdir(join(nbName, nName))
                 for k, v in contentDict.iteritems():
-                    self.write_file(noteFullPath+'/'+k, v, '') # ok, this looks strange
+                    self.write_file(noteFullPath+'/'+k, v, '') # ok, this looks strange, ext is included in k
         else:
             if contentDict: # create folder
                 if not exists(self.__str_c2l(noteFullPath)): os.mkdir(self.__str_c2l(noteFullPath))
@@ -99,6 +97,16 @@ class Storage(object):
                             os.remove(join(noteFullPath, fName, dName))
                         os.rmdir(join(noteFullPath, fName))
                     os.rmdir(noteFullPath)
+    def write_file(self, noteFullPath, content, postfix = '.md'):
+        if len(noteFullPath.split('/')) < 1: return False
+        if not exists(self.__str_c2l(noteFullPath.split('/')[0])):
+            os.mkdir(self.__str_c2l(noteFullPath.split('/')[0]))
+        try:
+            noteFullPath += postfix
+            with open(self.__str_c2l(join(*noteFullPath.split('/'))), 'wb') as f: f.write(content)
+            return True
+        except:
+            return False
     def get_file_dict(self):
         fileDict = {}
         for nbName in os.walk('.').next()[1]: # get folders
