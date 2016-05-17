@@ -20,7 +20,6 @@ class Controller(object):
         try:
             ec = EvernoteController(self.token, self.isSpecialToken, self.sandbox, self.isInternational)
             self.ls.update_config(self.token, self.isSpecialToken, self.sandbox, self.isInternational, self.expireTime, self.lastUpdate)
-            self.es.update(self.token, ec.noteStore)
             return True, ec
         except:
             return False, None
@@ -38,7 +37,7 @@ class Controller(object):
             self.ec = ec
         return available
     def fetch_notes(self):
-        if self.available: return False
+        if not self.available: return False
         self.ec.storage.update(self.token, self.ec.noteStore)
         return True
     def __get_changes(self, update = False): # -1 for need download, 1 for need upload, 0 for can be uploaded and downloaded

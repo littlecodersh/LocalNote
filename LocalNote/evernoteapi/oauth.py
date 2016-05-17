@@ -1,7 +1,19 @@
 import requests, getpass
+from urllib import unquote
 
 CONSUMER_KEY = 'littlecodersh1259'
 CONSUMER_SECRET = '39cf81a16bcfb160'
+
+def file_retry(n = 1):
+    def _file_retry(fn):
+        def __file_retry(*args, **kwargs):
+            for i in range(n):
+                try:
+                    return fn(*args, **kwargs)
+                except:
+                    pass
+        return __file_retry
+    return _file_retry
 
 class Oauth(object):
     def __init__(self, consumerKey = CONSUMER_KEY, consumerSecret = CONSUMER_SECRET, sandbox = True, isInternational = False):
@@ -11,13 +23,18 @@ class Oauth(object):
             self.host = 'app.evernote.com'
         else:
             self.host = 'app.yinxiang.com'
-        self.host = host
         self.consumerKey = consumerKey
         self.consumerSecret = consumerSecret
     def oauth(self):
-        self.__get_tmp_token()
-        self.__get_ver()
-        return self.__get_token()
+        token = self.__get_tmp_token()
+        if token is None: return
+        account, password = self.__get_login_info()
+        verifier = self.__get_ver(token, account, password)
+        if verifier:
+            return self.__get_token(token, verifier)
+        else:
+            return '', ''
+    @file_retry(3)
     def __get_tmp_token(self):
         payload = {
             'oauth_callback': '127.0.0.1',
@@ -26,39 +43,33 @@ class Oauth(object):
             'oauth_signature_method': 'PLAINTEXT',
         }
         r = requests.get('https://%s/oauth'%self.host, params = payload)
-        if not 'oauth_token' in r.text: raise Exception('oauth_token not found')
-        self.tmpOauthToken = dict(item.split('=',1) for item in unquote(r.text).split('&'))['oauth_token'],
+        return dict(item.split('=',1) for item in unquote(r.text).split('&')).get('oauth_token')
     def __get_login_info(self):
         account = raw_input('Username: ')
         password = getpass.getpass('Password: ')
         return account, password
-    def __get_ver(self):
-        while 1:
-            account, password = self.__get_login_info()
-            access = {
-                'authorize': 'Authorize',
-                'oauth_token': self.tmpOauthToken,
-                'username': account,
-                'password': password,
-            }
-            r = requests.post('https://%s/OAuth.action'%self.host, data = access)
-            if 'oauth_verifier' in r.url: break
-        self.verifier = dict(item.split('=', 1) for item in r.url.split('?')[-1].split('&'))['oauth_verifier']
-    def __get_token(self):
+    @file_retry(3)
+    def __get_ver(self, token, account, password):
+        access = {
+            'authorize': 'Authorize',
+            'oauth_token': token,
+            'username': account,
+            'password': password,
+        }
+        r = requests.post('https://%s/OAuth.action'%self.host, data = access)
+        return dict(item.split('=', 1) for item in r.url.split('?')[-1].split('&')).get('oauth_verifier')
+    @file_retry(3)
+    def __get_token(self, token, verifier):
         payload = {
             'oauth_consumer_key': self.consumerKey,
-            'oauth_token': self.tmpOauthToken,
-            'oauth_verifier': self.verifier,
+            'oauth_token': token,
+            'oauth_verifier': verifier,
             'oauth_signature': self.consumerSecret,
             'oauth_signature_method': 'PLAINTEXT',
         }
         r = requests.get('https://%s/oauth'%self.host, params = payload)
-
-        if not ('oauth_token' in r.text and 'edam_expires' in r.text): raise Exception('Token Not Found')
         return (dict(item.split('=',1) for item in unquote(r.text).split('&'))['oauth_token'],
-            dict(item.split('=',1) for item in unquote(r.text).split('&'))['edam_expires'], self.host)
+            int(dict(item.split('=',1) for item in unquote(r.text).split('&'))['edam_expires']))
 
 if __name__=='__main__':
-    key = ''
-    secret = ''
-    print Oauth(key, secret).oauth()
+    print Oauth().oauth()

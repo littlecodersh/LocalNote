@@ -20,13 +20,16 @@ class Storage():
     def __init__(self):
         self.available = False
     def update(self, token, noteStore):
+        f = NoteStore.NoteFilter()
+        s = NoteStore.NotesMetadataResultSpec()
+        s.includeTitle = True
+        s.includeUpdated = True
         for nb in noteStore.listNotebooks():
             self.storage[nb.name] = {}
             self.storage[nb.name]['notebook'] = nb
             self.storage[nb.name]['notes'] = {}
-            f = NoteStore.NoteFilter()
             f.notebookGuid = nb.guid
-            for ns in noteStore.findNotes(token, f, 0, 999).notes:
+            for ns in noteStore.findNotesMetadata(f, 0, 9999, s).notes:
                 self.storage[nb.name]['notes'][ns.title] = ns
         self.defaultNotebook = noteStore.getDefaultNotebook(token).name
     def create_note(self, note, notebookName = None):
