@@ -2,7 +2,7 @@
 import sys, os, json, time
 
 from controllers import Controller
-from evernoteapi.oauth import Oauth
+from evernoteapi.oauth2 import Oauth
 
 
 def sys_print(s, level = 'info'):
