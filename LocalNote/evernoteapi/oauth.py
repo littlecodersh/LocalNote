@@ -69,7 +69,7 @@ class Oauth(object):
         }
         r = requests.get('https://%s/oauth'%self.host, params = payload)
         return (dict(item.split('=',1) for item in unquote(r.text).split('&'))['oauth_token'],
-            int(dict(item.split('=',1) for item in unquote(r.text).split('&'))['edam_expires']))
+            int(dict(item.split('=',1) for item in unquote(r.text).split('&'))['edam_expires']) / 1000)
 
 if __name__=='__main__':
     print Oauth().oauth()

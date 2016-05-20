@@ -9,6 +9,27 @@ def sys_print(s, level = 'info'):
     print(('[%-4s] %s'%((level+' '*4)[:4].upper(), s)).encode(sys.stdin.encoding))
 def sys_input(s):
     return raw_input(s.encode(sys.stdin.encoding))
+def check_files_format(fn):
+    def _check_files_format(*args, **kwargs):
+        mainController = Controller()
+        configFound, wrongFiles = mainController.check_files_format()
+        if not configFound:
+            sys_print(u'检测到你不在印象笔记主目录中，或配置文件损坏', 'warn')
+        elif mainController.available:
+            if wrongFiles:
+                for fileName, status in wrongFiles:
+                    if status == 1:
+                        sys_print(u'检测到错误放置的内容：'+fileName.decode('utf8'), 'warn')
+                    elif status == 2:
+                        sys_print(u'检测到内容过大的文件：'+fileName.decode('utf8'), 'warn')
+                    elif status == 3:
+                        sys_print(u'检测到意义不明的文件：'+fileName.decode('utf8'), 'warn')
+                sys_print(u'请确保单条笔记有md或html的正文且不大于%s字节，笔记中没有文件夹格式的附件。'%mainController.ls.maxUpload, 'info')
+            else:
+                return fn(mainController, *args, **kwargs)
+        else:
+            sys_print(u'尚未登录', 'warn')
+    return _check_files_format
 def show_help(*args):
     for fn, h in argDict.iteritems():
         print('%-10s: %s'%(fn, h[1].decode('utf8').encode(sys.stdin.encoding)))
@@ -35,16 +56,15 @@ def init(*args):
                 if isSpecialToken:
                     token = sys_input(u'开发者Token: ')
                 else:
-                    sys_print(u'本地删除笔记本将不会同步到云端，但笔记会照常删除')
                     if not sandbox: isInternational = sys_input(u'是否是国际用户？[yn]') == 'y'
                     token, expireTime = Oauth(sandbox = sandbox, isInternational = isInternational).oauth()
                 if token:
                     mainController.log_in(token=token, isSpecialToken=isSpecialToken, sandbox=sandbox,
-                            isInternational = isInternational, expireTime = expireTime / 1000)
+                            isInternational = isInternational, expireTime = expireTime)
                     if mainController.available:
                         mainController.ls.update_config(token=token, isSpecialToken=isSpecialToken,
                                 sandbox=sandbox, isInternational=isInternational,
-                                expireTime=expireTime / 1000)
+                                expireTime = expireTime)
                         sys_print(u'登陆成功')
                         break
                     else:
@@ -58,52 +78,44 @@ def init(*args):
     else:
         _init(*args)
     print('Bye~')
-def config(*args):
-    mainController = Controller()
-    if mainController.available:
-        sys_print(u'目前登录用户： ' + mainController.ec.userStore.getUser().username)
-    else:
-        sys_print(u'尚未登录', 'warn')
-def pull(*args):
-    mainController = Controller()
-    if mainController.available:
-        mainController.fetch_notes()
-        # show changes
-        for change in mainController.get_changes():
-            if change[1] in (-1, 0): sys_print(change[0].decode('utf8'), 'down')
-        # confirm
-        if sys_input(u'是否更新本地文件？[yn]') == 'y':
-            mainController.download_notes(False)
-        print('Bye~')
-    else:
-        sys_print(u'尚未登录', 'warn')
-def push(*args):
-    mainController = Controller()
-    if mainController.available:
-        mainController.fetch_notes()
-        # show changes
-        for change in mainController.get_changes():
-            if change[1] in (1, 0): sys_print(change[0].decode('utf8'), 'down')
-        # confirm
-        if sys_input(u'是否上传本地文件？[yn]') == 'y':
-            mainController.upload_files(False)
-        print('Bye~')
-    else:
-        sys_print(u'尚未登录', 'warn')
-def status(*args):
-    mainController = Controller()
-    if mainController.available:
-        mainController.fetch_notes()
-        # show changes
-        for change in mainController.get_changes():
+@check_files_format
+def config(mainController, *args):
+    sys_print(u'目前登录用户： ' + mainController.ec.userStore.getUser().username)
+@check_files_format
+def pull(mainController, *args):
+    mainController.fetch_notes()
+    # show changes
+    for change in mainController.get_changes():
+        if change[1] in (-1, 0, 1): sys_print(change[0].decode('utf8'), 'pull')
+    # confirm
+    if sys_input(u'是否更新本地文件？[yn]') == 'y':
+        mainController.download_notes(False)
+    print('Bye~')
+@check_files_format
+def push(mainController, *args):
+    mainController.fetch_notes()
+    # show changes
+    for change in mainController.get_changes():
+        if change[1] in (1, 0): sys_print(change[0].decode('utf8'), 'push')
+    # confirm
+    if sys_input(u'是否上传本地文件？[yn]') == 'y':
+        mainController.upload_files(False)
+    print('Bye~')
+@check_files_format
+def status(mainController, *args):
+    mainController.fetch_notes()
+    # show changes
+    changes = mainController.get_changes()
+    if changes:
+        for change in changes:
             if change[1] == -1:
-                sys_print(change[0].decode('utf8'), 'down')
+                sys_print(change[0].decode('utf8'), 'pull')
             elif change[1] == 1:
-                sys_print(change[0].decode('utf8'), 'uplo')
+                sys_print(change[0].decode('utf8'), 'push')
             elif change[1] == 0:
                 sys_print(change[0].decode('utf8'), 'both')
     else:
-        sys_print(u'尚未登录', 'warn')
+        sys_print(u'云端和本地笔记都处于已同步的最新状态。')
 
 argDict = {
     'help': (show_help, '显示帮助'),

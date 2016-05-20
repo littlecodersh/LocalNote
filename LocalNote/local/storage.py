@@ -1,4 +1,4 @@
-import json, os, time, sys
+import json, os, time, sys, re
 from os.path import join, exists
 import chardet
 
@@ -14,7 +14,8 @@ CONFIG_DIR = 'user.cfg'
 # }
 
 class Storage(object):
-    def __init__(self):
+    def __init__(self, maxUpload = 0):
+        self.maxUpload = maxUpload
         self.token, self.isSpecialToken, self.sandbox, self.isInternational, self.expireTime, self.lastUpdate = self.__load_config()
         self.encoding = sys.stdin.encoding
     def __load_config(self):
@@ -49,16 +50,16 @@ class Storage(object):
             return s.decode(chardet.detect(s)['encoding'] or 'utf8').encode('utf8')
     def read_note(self, noteFullPath):
         attachmentDict = {}
-        if exists(join(*self.__str_c2l(noteFullPath).split('/'))):
+        if exists(join(*self.__str_c2l(noteFullPath).split('/'))): # note is a foldernote
             for attachment in os.walk(join(*self.__str_c2l(noteFullPath).split('/'))).next()[2]:
                 with open(join(*(self.__str_c2l(noteFullPath)+'/'+attachment).split('/')), 'rb') as f:
                     attachmentDict[self.__str_l2c(attachment)] = f.read()
-        else:
+        else: # note is a pure file
             fileList = os.walk(join(*self.__str_c2l(noteFullPath).split('/')[:-1])).next()[2]
             for postfix in ('.md', '.html'):
                 fName = noteFullPath.split('/')[-1] + postfix
                 if self.__str_c2l(fName) in fileList:
-                    with open(join(*self.__str_c2l(fName))) as f:
+                    with open(join(*self.__str_c2l(noteFullPath + postfix).split('/'))) as f:
                         attachmentDict[fName] = f.read()
         return attachmentDict
     def write_note(self, noteFullPath, contentDict = {}):
@@ -119,3 +120,36 @@ class Storage(object):
                 else:
                     fileDict[nbNameUtf8].append((self.__str_l2c(os.path.splitext(nName)[0]), os.stat(filePath).st_mtime))
         return fileDict
+    def check_files_format(self):
+        try:
+            with open('user.cfg') as f: j = json.loads(f.read())
+            if len(j) != 6: raise Exception
+            for k in j.keys():
+                if k not in ('token', 'is-special-token', 'sandbox',
+                        'is-international', 'expire-time', 'last-update'):
+                    raise Exception
+        except:
+            return False, []
+        r = [] # (filename, status) 1 for wrong placement, 2 for too large, 3 for missing main file
+        notebooks, notes = os.walk('.').next()[1:]
+        for note in notes:
+            if note != 'user.cfg': r.append((self.__str_l2c(note), 1))
+        for notebook in notebooks:
+            folderNotes, notes = os.walk(notebook).next()[1:]
+            for note in notes:
+                if re.compile('.+\.(md|html)').match(note):
+                    if self.maxUpload < os.path.getsize(join(notebook, note)):
+                        r.append((self.__str_l2c(join(notebook, note)), 2))
+                else:
+                    r.append((self.__str_l2c(join(notebook, note)), 3))
+            for folderNote in folderNotes:
+                size = 0
+                wrongFolders, attas = os.walk(join(notebook, folderNote)).next()[1:]
+                if filter(lambda x: re.compile('.+\.(md|html)').match(x), attas) == []:
+                    r.append((self.__str_l2c(join(notebook, folderNote), 3)))
+                for atta in attas: size += os.path.getsize(join(notebook, folderNote, atta))
+                for wrongFolder in wrongFolders:
+                    r.append((self.__str_l2c(join(notebook, folderNote, wrongFolder)), 1))
+                if self.maxUpload < size:
+                    r.append((self.__str_l2c(join(notebook, folderNote)), 2))
+        return True, r

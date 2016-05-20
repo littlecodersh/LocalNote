@@ -1,3 +1,4 @@
+#coding=utf8
 """ A command line tool to use evernote locally
 See:
 https://github.com/littlecodersh/LocalNote
@@ -15,9 +16,10 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='LocalNote',
 
-    version='1.0.0',
+    version='1.0.1',
 
-    description='Use your evernote like local file system in all platforms (markdown supported)',
+    description='LocalNote让你能够像使用本地文件一样使用印象笔记，支持markdown语法。Use your evernote like local file system in all platforms (markdown supported)',
+
     long_description=long_description,
 
     url='https://github.com/littlecodersh/LocalNote',
@@ -35,13 +37,7 @@ setup(
 
         'License :: OSI Approved :: MIT License',
 
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
-        # 'Programming Language :: Python :: 3',
-        # 'Programming Language :: Python :: 3.3',
-        # 'Programming Language :: Python :: 3.4',
-        # 'Programming Language :: Python :: 3.5',
     ],
 
     keywords='evernote local markdown python',
@@ -50,7 +46,7 @@ setup(
     # simple. Or you can use find_packages().
     packages=find_packages(),
 
-    install_requires=['requests', 'markdown2'],
+    install_requires=['requests', 'markdown', 'evernote'],
 
     # List additional groups of dependencies here
     extras_require={},

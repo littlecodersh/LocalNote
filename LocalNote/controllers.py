@@ -1,7 +1,7 @@
-import os, time
+import os, time, re
 
 import chardet
-from markdown2 import markdown
+from markdown import markdown
 
 from local.storage import Storage as LocalStorage
 from evernoteapi.storage import Storage as EvernoteStorage
@@ -9,10 +9,11 @@ from evernoteapi.controller import EvernoteController
 
 class Controller(object):
     def __init__(self):
-        self.ls = LocalStorage()
         self.es = EvernoteStorage()
+        self.ls = LocalStorage()
         self.token, self.isSpecialToken, self.sandbox, self.isInternational, self.expireTime, self.lastUpdate = self.ls.get_config()
         self.available, self.ec = self.__check_available()
+        if self.available: self.ls.maxUpload = self.ec.get_upload_limit()
         self.changesList = []
     def __check_available(self):
         if not self.isSpecialToken and self.expireTime < time.time(): return False, None
@@ -35,6 +36,7 @@ class Controller(object):
         if available:
             self.available = True
             self.ec = ec
+            self.ls.maxUpload = self.ec.get_upload_limit()
         return available
     def fetch_notes(self):
         if not self.available: return False
@@ -62,8 +64,7 @@ class Controller(object):
                     else:
                         if self.ls.lastUpdate < eNote[1]:
                             r.append((nbName+'/'+lNote[0], -1))
-                        else:
-                            pass
+                        # else:
                             # debug
                             # r.append((nbName+'/'+lNote[0], 2))
                     delIndex.append(i)
@@ -78,6 +79,8 @@ class Controller(object):
         return r
     def get_changes(self):
         return self.__get_changes(True)
+    def check_files_format(self):
+        return self.ls.check_files_format()
     def download_notes(self, update = True):
         if not self.available: return False
         noteDict = self.es.get_note_dict()
@@ -111,7 +114,7 @@ class Controller(object):
                 else:
                     self.ls.write_note(noteFullPath, {1}) # create folder
                     for note in notes: _download_note(noteFullPath+'/'+note[0])
-        self.ls.update_config(lastUpdate = time.time())
+        self.ls.update_config(lastUpdate = time.time() + 1)
         return True
     def upload_files(self, update = True):
         if not self.available: return False
@@ -125,15 +128,17 @@ class Controller(object):
                     content = 'Upload encode failed, I\'m sorry! Please contact i7meavnktqegm1b@qq.com with this file.'
             return content
         def _upload_files(noteFullPath, attachmentDict):
+            print(('Uploading '+noteFullPath).decode('utf8'))
             nbName, nName = noteFullPath.split('/')
             if not attachmentDict:
                 self.ec.delete_note(noteFullPath)
             elif nName + '.md' in attachmentDict.keys():
-                content = encode_content(attachmentDict[nName+'.md'])
-                self.ec.update_note(noteFullPath, markdown(content), attachmentDict)
+                content = encode_content(attachmentDict[nName+'.md']).decode('utf8')
+                content = markdown(content, extensions=['markdown.extensions.fenced_code', 'markdown.extensions.tables'])
+                content = re.compile('<code[^>]*?>').sub('<code>', content)
+                self.ec.update_note(noteFullPath, content.encode('utf8'), attachmentDict)
             elif nName + '.html' in attachmentDict.keys():
                 content = encode_content(attachmentDict[nName+'.html'])
-                del attachmentDict[nName + '.html']
                 self.ec.update_note(noteFullPath, content, attachmentDict)
         for noteFullPath, status in self.__get_changes(update):
             if status not in (1, 0): continue
@@ -151,5 +156,5 @@ class Controller(object):
                     for note in lns:
                         attachmentDict = self.ls.read_note(noteFullPath+'/'+note[0])
                         _upload_files(noteFullPath+'/'+note[0], attachmentDict)
-        self.__get_changes(update = True)
+        self.ls.update_config(lastUpdate = time.time() + 1)
         return True

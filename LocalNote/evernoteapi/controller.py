@@ -3,6 +3,7 @@ import sys, hashlib, re, time, mimetypes
 
 import evernote.edam.type.ttypes as Types
 import evernote.edam.notestore.NoteStore as NoteStore
+from evernote.edam.error.ttypes import EDAMUserException
 from evernote.api.client import EvernoteClient
 
 from storage import Storage
@@ -20,6 +21,12 @@ class EvernoteController(object):
         self.userStore = self.client.get_user_store()
         self.noteStore = self.client.get_note_store()
         self.storage = Storage()
+    def get_upload_limit(self):
+        return {
+            1: 25 * 1024 * 1024,
+            3: 100 * 1024 * 1024,
+            5: 200 * 1024 * 1024,
+        }.get(self.userStore.getUser().privilege, 0)
     def create_notebook(self, title):
         if self.get(title): return False
         notebook = Types.Notebook()
@@ -28,6 +35,7 @@ class EvernoteController(object):
             notebook = self.noteStore.createNotebook(notebook)
         except EDAMUserException, e:
             if e.errorCode == 10 and e.parameter == 'Notebook.name':
+                self.storage.update(self.token, self.noteStore)
                 return True
             else:
                 raise e
@@ -138,10 +146,7 @@ class EvernoteController(object):
     def delete_note(self, noteFullPath):
         if self.get(noteFullPath) is None: return False
         if type(self.get(noteFullPath)) != type(Types.Note()): raise Exception('Types Error')
-        if self.isSpecialToken:
-            self.noteStore.expungeNote(self.token, self.get(noteFullPath).guid)
-        else:
-            self.noteStore.deleteNote(self.token, self.get(noteFullPath).guid)
+        self.noteStore.deleteNote(self.token, self.get(noteFullPath).guid)
         self.storage.delete_note(noteFullPath)
         return True
     def delete_notebook(self, notebook):
