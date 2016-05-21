@@ -1,7 +1,7 @@
 #coding=utf8
 import sys, os, json, time
 
-from controllers import Controller
+from controllers import Controller, convert_html
 from evernoteapi.oauth2 import Oauth
 
 
@@ -58,6 +58,8 @@ def init(*args):
                 else:
                     if not sandbox: isInternational = sys_input(u'是否是国际用户？[yn]') == 'y'
                     token, expireTime = Oauth(sandbox = sandbox, isInternational = isInternational).oauth()
+                    # Use special oauth to get token
+                    isSpecialToken = True
                 if token:
                     mainController.log_in(token=token, isSpecialToken=isSpecialToken, sandbox=sandbox,
                             isInternational = isInternational, expireTime = expireTime)
@@ -116,6 +118,29 @@ def status(mainController, *args):
                 sys_print(change[0].decode('utf8'), 'both')
     else:
         sys_print(u'云端和本地笔记都处于已同步的最新状态。')
+def convert(*args):
+    if 0 < len(args):
+        fileName, ext = os.path.splitext(args[0])
+        if sys_input(u'将会生成：%s，是否继续？[yn] '%(fileName.decode(sys.stdin.encoding) + '.md')) != 'y': return
+        status = convert_html(args[0])
+        if status in (1, 2, 4):
+            if status == 1:
+                sys_print(u'仅能转换html文件', 'warn')
+            elif status == 2:
+                sys_print(u'没有找到此文件', 'warn')
+            else:
+                sys_print(u'无法正常解码，请尝试Utf8编码')
+            return
+        else:
+            if status == 3:
+                if sys_input(u'已检测到同名.md文件，是否继续写入？[yn] ') != 'y':
+                    return
+                else:
+                    status = convert_html(args[0], 
+                            sys_input(u'是否覆盖写入，否将自动添加后缀[yn]') == 'y')
+            sys_print(u'已成功生成%s。'%status.decode(sys.stdin.encoding))
+    else:
+        sys_print(u'使用方式：localnote convert 需要转换的文件.html')
 
 argDict = {
     'help': (show_help, '显示帮助'),
@@ -124,12 +149,13 @@ argDict = {
     'pull': (pull, '下载云端笔记'),
     'push': (push, '上传本地笔记'),
     'status': (status, '查看本地及云端更改'),
+    'convert': (convert, '将html文件转为markdown格式')
 }
 
 def main():
     del sys.argv[0]
     if not sys.argv: sys.argv.append('help')
-    argDict.get(sys.argv[0], (show_help,))[0](sys.argv[1:])
+    argDict.get(sys.argv[0], (show_help,))[0](*sys.argv[1:])
 
 if __name__ == '__main__':
     main()

@@ -35,6 +35,8 @@ LocalNote让你能够像使用本地文件一样使用印象笔记。
     localnote status
     # 上传本地笔记
     localnote push
+    # 将html转化为md格式
+    localnote convert 需要转换的文件.html
 
 存储格式
 

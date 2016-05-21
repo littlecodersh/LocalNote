@@ -4,11 +4,13 @@ LocalNote让你能够像使用本地文件一样使用印象笔记。
 
 支持流行的markdown格式的笔记，印象笔记中完美显示，上传重新下载笔记仍可编辑。
 
+支持印象笔记原笔记格式转化为markdown格式，轻松开始使用。
+
 三平台支持，在linux平台也流畅的使用印象笔记。
 
 # Screenshot
 
-![](http://7xrip4.com1.z0.glb.clouddn.com/LocalNoteDemo.gif)
+![](http://7xrip4.com1.z0.glb.clouddn.com/LocalNote%5CDemo_short.gif)
 
 视频见[这里](http://v.youku.com/v_show/id_XMTU3Nzc5NzU1Ng==)
 
@@ -31,6 +33,8 @@ localnote pull
 localnote status
 # 上传本地笔记
 localnote push
+# 将html转化为md格式
+localnote convert 需要转换的文件.html
 ```
 
 ## 存储格式

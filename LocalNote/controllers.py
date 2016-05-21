@@ -1,9 +1,9 @@
 import os, time, re
 
 import chardet
-from markdown import markdown
 
-from local.storage import Storage as LocalStorage
+from local import Storage as LocalStorage
+from local import html2text, markdown
 from evernoteapi.storage import Storage as EvernoteStorage
 from evernoteapi.controller import EvernoteController
 
@@ -123,7 +123,7 @@ class Controller(object):
                 content.decode('utf8')
             except:
                 try:
-                    content = content.decode(chardet.detect(content)).encode('utf8')
+                    content = content.decode(chardet.detect(content)['encoding']).encode('utf8')
                 except:
                     content = 'Upload encode failed, I\'m sorry! Please contact i7meavnktqegm1b@qq.com with this file.'
             return content
@@ -134,9 +134,7 @@ class Controller(object):
                 self.ec.delete_note(noteFullPath)
             elif nName + '.md' in attachmentDict.keys():
                 content = encode_content(attachmentDict[nName+'.md']).decode('utf8')
-                content = markdown(content, extensions=['markdown.extensions.fenced_code', 'markdown.extensions.tables'])
-                content = re.compile('<code[^>]*?>').sub('<code>', content)
-                self.ec.update_note(noteFullPath, content.encode('utf8'), attachmentDict)
+                self.ec.update_note(noteFullPath, markdown(content).encode('utf8'), attachmentDict)
             elif nName + '.html' in attachmentDict.keys():
                 content = encode_content(attachmentDict[nName+'.html'])
                 self.ec.update_note(noteFullPath, content, attachmentDict)
@@ -158,3 +156,30 @@ class Controller(object):
                         _upload_files(noteFullPath+'/'+note[0], attachmentDict)
         self.ls.update_config(lastUpdate = time.time() + 1)
         return True
+def convert_html(htmlDir, force = None):
+    # FileName for done, 1 for wrong file type, 2 for file missing
+    # 3 for need rename, 4 for unknown encoding
+    fileName, ext = os.path.splitext(htmlDir)
+    if ext != '.html': return 1
+    if not os.path.exists(htmlDir): return 2
+    with open(htmlDir, 'rb') as f: content = f.read()
+    try:
+        content = content.decode('utf8')
+    except:
+        try:
+            content = content.decode(chardet.detect(content)['encoding'])
+        except:
+            return 4
+    if os.path.exists(fileName + '.md'):
+        if force is None:
+            return 3
+        elif force == True:
+            pass
+        elif force == False:
+            index = 1
+            while 1:
+                if not os.path.exists(fileName + '(%s)'%index + '.md'): break
+                index += 1
+            fileName += '(%s)'%index
+    with open(fileName + '.md', 'wb') as f: f.write(html2text(content).encode('utf8'))
+    return fileName + '.md'
