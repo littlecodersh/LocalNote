@@ -27,10 +27,10 @@ class EvernoteController(object):
             3: 100 * 1024 * 1024,
             5: 200 * 1024 * 1024,
         }.get(self.userStore.getUser().privilege, 0)
-    def create_notebook(self, title):
-        if self.get(title): return False
+    def create_notebook(self, noteFullPath):
+        if self.get(noteFullPath): return False
         notebook = Types.Notebook()
-        notebook.name = title
+        notebook.name = noteFullPath
         try:
             notebook = self.noteStore.createNotebook(notebook)
         except EDAMUserException, e:
@@ -39,17 +39,16 @@ class EvernoteController(object):
                 return True
             else:
                 raise e
-        else:
-            self.storage.create_notebook(notebook)
-            return True
+        self.storage.create_notebook(notebook)
+        return True
     def create_note(self, noteFullPath, content = None, fileDict = {}):
         if self.get(noteFullPath): return False
-        if '/' in noteFullPath:
-            notebook = noteFullPath.split('/')[0]
-            title = noteFullPath.split('/')[1]
+        if 1 < len(noteFullPath):
+            notebook = noteFullPath[0]
+            title = noteFullPath[1]
         else:
             notebook = self.storage.defaultNotebook
-            title = noteFullPath
+            title = noteFullPath[0]
         note = Types.Note()
         note.title = title
         note.content = '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">'
@@ -81,12 +80,12 @@ class EvernoteController(object):
     def update_note(self, noteFullPath, content = None, fileDict = {}):
         note = self.get(noteFullPath)
         if note is None: return self.create_note(noteFullPath, content or '', fileDict)
-        if '/' in noteFullPath:
-            notebook = noteFullPath.split('/')[0]
-            title = noteFullPath.split('/')[1]
+        if 1 < len(noteFullPath):
+            notebook = noteFullPath[0]
+            title = noteFullPath[1]
         else:
             notebook = self.storage.defaultNotebook
-            title = noteFullPath
+            title = noteFullPath[0]
         oldContent = self.get_content(noteFullPath)
         header = '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">'
         guid = note.guid
@@ -135,7 +134,7 @@ class EvernoteController(object):
         return attachmentDict
     def move_note(self, noteFullPath, _to):
         if self.get(noteFullPath) is None: return False
-        if type(self.get(noteFullPath)) != type(Types.Note()) or type(self.get(_to)) != type(Types.Notebook()): raise Exception('Type Error')
+        if len(noteFullPath) < 2 or 1 < len(_to): raise Exception('Type Error')
         self.noteStore.copyNote(self.token, self.get(noteFullPath).guid, self.get(_to).guid)
         if self.isSpecialToken:
             self.noteStore.expungeNote(self.token, self.get(noteFullPath).guid)
@@ -144,16 +143,17 @@ class EvernoteController(object):
         self.storage.move_note(noteFullPath, _to)
         return True
     def delete_note(self, noteFullPath):
-        if self.get(noteFullPath) is None: return False
-        if type(self.get(noteFullPath)) != type(Types.Note()): raise Exception('Types Error')
-        self.noteStore.deleteNote(self.token, self.get(noteFullPath).guid)
+        note = self.get(noteFullPath)
+        if note is None: return False
+        if len(noteFullPath) < 2: raise Exception('Types Error')
+        self.noteStore.deleteNote(self.token, note.guid)
         self.storage.delete_note(noteFullPath)
         return True
-    def delete_notebook(self, notebook):
-        if not self.get(notebook) or not self.isSpecialToken: return False
-        if type(self.get(notebook)) != type(Types.Notebook()): raise Exception('Types Error')
-        self.noteStore.expungeNotebook(self.token, self.get(notebook).guid)
-        self.storage.delete_notebook(notebook)
+    def delete_notebook(self, noteFullPath):
+        if not self.get(noteFullPath) or not self.isSpecialToken: return False
+        if 1 < len(noteFullPath): raise Exception('Types Error')
+        self.noteStore.expungeNotebook(self.token, self.get(noteFullPath).guid)
+        self.storage.delete_notebook(noteFullPath)
         return True
     def get(self, s):
         return self.storage.get(s)
@@ -172,17 +172,17 @@ if __name__ == '__main__':
     token = 'S=s1:U=91eca:E=15be6680420:C=1548eb6d760:P=1cd:A=en-devtoken:V=2:H=026e6ff5f5d0753eb37146a1b4660cc9'
     e = EvernoteController(token, True, True)
     # e.update_note('Hello', 'Test', 'Changed', 'README.md')
-    e.create_note('Test/中文', 'Chinese')
+    e.create_note(['Test', '中文'], 'Chinese')
 
 if False:
-    e.create_notebook('Notebook1')
-    e.create_note('Hello', '<en-note>Hello, world!</en-note>', 'Notebook1')
+    e.create_notebook(['Notebook1'])
+    e.create_note(['Notebook1', 'Hello'], '<en-note>Hello, world!</en-note>')
     e.create_notebook('Notebook2')
     e.show_notes()
-    e.move_note('Notebook1/Hello', 'Notebook2')
+    e.move_note(['Notebook1', 'Hello'], ['Notebook2'])
     e.show_notes()
-    e.delete_note('Notebook2/Hello')
+    e.delete_note(['Notebook2', 'Hello'])
     # deleting notebook can only be available when you use developer token for you own evernote
-    e.delete_notebook('Notebook1')
-    e.delete_notebook('Notebook2')
+    e.delete_notebook(['Notebook1'])
+    e.delete_notebook(['Notebook2'])
     e.show_notes()

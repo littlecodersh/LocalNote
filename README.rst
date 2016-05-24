@@ -5,6 +5,8 @@ LocalNote让你能够像使用本地文件一样使用印象笔记。
 
 支持流行的markdown格式的笔记，印象笔记中完美显示，上传重新下载笔记仍可编辑。
 
+支持印象笔记原笔记格式转化为markdown格式，轻松开始使用。
+
 三平台支持，在linux平台也流畅的使用印象笔记。
 
 欢迎在 `Github <https://github.com/littlecodersh/LocalNote>`__ 参与项目，提交反馈。

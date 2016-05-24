@@ -50,21 +50,21 @@ class Storage(object):
             return s.decode(chardet.detect(s)['encoding'] or 'utf8').encode('utf8')
     def read_note(self, noteFullPath):
         attachmentDict = {}
-        if exists(join(*self.__str_c2l(noteFullPath).split('/'))): # note is a foldernote
-            for attachment in os.walk(join(*self.__str_c2l(noteFullPath).split('/'))).next()[2]:
-                with open(join(*(self.__str_c2l(noteFullPath)+'/'+attachment).split('/')), 'rb') as f:
+        if exists(self.__str_c2l(join(*noteFullPath))): # note is a foldernote
+            for attachment in os.walk(self.__str_c2l(join(*noteFullPath))).next()[2]:
+                with open(self.__str_c2l(join(*(noteFullPath))) + os.path.sep + attachment, 'rb') as f:
                     attachmentDict[self.__str_l2c(attachment)] = f.read()
         else: # note is a pure file
-            fileList = os.walk(join(*self.__str_c2l(noteFullPath).split('/')[:-1])).next()[2]
+            fileList = os.walk(self.__str_c2l(join(*noteFullPath[:-1]))).next()[2]
             for postfix in ('.md', '.html'):
-                fName = noteFullPath.split('/')[-1] + postfix
+                fName = noteFullPath[-1] + postfix
                 if self.__str_c2l(fName) in fileList:
-                    with open(join(*self.__str_c2l(noteFullPath + postfix).split('/'))) as f:
+                    with open(self.__str_c2l(join(noteFullPath)) + postfix) as f:
                         attachmentDict[fName] = f.read()
         return attachmentDict
     def write_note(self, noteFullPath, contentDict = {}):
-        if '/' in noteFullPath:
-            nbName, nName = self.__str_c2l(noteFullPath).split('/')
+        if 1 < len(noteFullPath):
+            nbName, nName = [self.__str_c2l(s) for s in noteFullPath]
             # clear environment
             if exists(nbName):
                 for postfix in ('.md', '.html'):
@@ -84,12 +84,12 @@ class Storage(object):
             else:
                 if not exists(join(nbName, nName)): os.mkdir(join(nbName, nName))
                 for k, v in contentDict.iteritems():
-                    self.write_file(noteFullPath+'/'+k, v, '') # ok, this looks strange, ext is included in k
+                    self.write_file(noteFullPath+[k], v, '') # ok, this looks strange, ext is included in k
         else:
             if contentDict: # create folder
-                if not exists(self.__str_c2l(noteFullPath)): os.mkdir(self.__str_c2l(noteFullPath))
+                if not exists(self.__str_c2l(noteFullPath[0])): os.mkdir(self.__str_c2l(noteFullPath[0]))
             else: # delete folder
-                noteFullPath = self.__str_c2l(noteFullPath)
+                noteFullPath = self.__str_c2l(noteFullPath[0])
                 if exists(noteFullPath):
                     for fName in os.walk(noteFullPath).next()[2]:
                         os.remove(join(noteFullPath, fName))
@@ -99,12 +99,12 @@ class Storage(object):
                         os.rmdir(join(noteFullPath, fName))
                     os.rmdir(noteFullPath)
     def write_file(self, noteFullPath, content, postfix = '.md'):
-        if len(noteFullPath.split('/')) < 1: return False
-        if not exists(self.__str_c2l(noteFullPath.split('/')[0])):
-            os.mkdir(self.__str_c2l(noteFullPath.split('/')[0]))
+        if len(noteFullPath) < 1: return False
+        if not exists(self.__str_c2l(noteFullPath[0])):
+            os.mkdir(self.__str_c2l(noteFullPath[0]))
         try:
-            noteFullPath += postfix
-            with open(self.__str_c2l(join(*noteFullPath.split('/'))), 'wb') as f: f.write(content)
+            noteFullPath[1] += postfix
+            with open(self.__str_c2l(join(*noteFullPath)), 'wb') as f: f.write(content)
             return True
         except:
             return False

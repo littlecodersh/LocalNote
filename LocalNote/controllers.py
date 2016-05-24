@@ -50,7 +50,7 @@ class Controller(object):
         for nbName, lNotes in fileDict.items():
             eNotes = noteDict.get(nbName)
             if eNotes is None: # notebook exists locally not online
-                r.append((nbName, 0))
+                r.append(([nbName], 0))
                 continue
             delIndex = []
             for lNote in lNotes:
@@ -58,23 +58,23 @@ class Controller(object):
                     if lNote[0] != eNote[0]: continue
                     if self.ls.lastUpdate < lNote[1]: # need upload
                         if self.ls.lastUpdate < eNote[1]: # need download
-                            r.append((nbName+'/'+lNote[0], 0))
+                            r.append(([nbName, lNote[0]], 0))
                         else:
-                            r.append((nbName+'/'+lNote[0], 1))
+                            r.append(([nbName, lNote[0]], 1))
                     else:
                         if self.ls.lastUpdate < eNote[1]:
-                            r.append((nbName+'/'+lNote[0], -1))
+                            r.append(([nbName, lNote[0]], -1))
                         # else:
                             # debug
-                            # r.append((nbName+'/'+lNote[0], 2))
+                            # r.append(([nbName, lNote[0]], 2))
                     delIndex.append(i)
                     break
                 else: # note exists locally not online
-                    r.append((nbName+'/'+lNote[0], 0))
+                    r.append(([nbName, lNote[0]], 0))
             eNotes = [n for i, n in enumerate(eNotes) if i not in delIndex]
-            for eNote in eNotes: r.append((nbName+'/'+eNote[0], 0)) # note exists online not locally
+            for eNote in eNotes: r.append(([nbName, eNote[0]], 0)) # note exists online not locally
             del noteDict[nbName]
-        for nbName in noteDict.keys(): r.append((nbName, 0))
+        for nbName in noteDict.keys(): r.append(([nbName], 0))
         self.changesList = r
         return r
     def get_changes(self):
@@ -85,35 +85,35 @@ class Controller(object):
         if not self.available: return False
         noteDict = self.es.get_note_dict()
         def _download_note(noteFullPath):
-            print(('Downloading '+noteFullPath).decode('utf8'))
+            print(('Downloading '+'/'.join(noteFullPath)).decode('utf8'))
             if self.es.get(noteFullPath) is None: # delete note if is deleted online
                 self.ls.write_note(noteFullPath, {})
                 return
             contentDict = self.ec.get_attachment(noteFullPath)
-            if contentDict.get(noteFullPath.split('/')[1]+'.md') is None:
-                if contentDict.get(noteFullPath.split('/')[1]+'.html') is None:
-                    contentDict[noteFullPath.split('/')[1]+'.html'] = self.ec.get_content(noteFullPath)
+            if contentDict.get(noteFullPath[1]+'.md') is None:
+                if contentDict.get(noteFullPath[1]+'.html') is None:
+                    contentDict[noteFullPath[1]+'.html'] = self.ec.get_content(noteFullPath)
                 else: # avoid mistaken overwrite of attachment
                     fileNum = 1
                     while 1:
-                        if contentDict.get(noteFullPath.split('/')[1]+'(%s).html'%fileNum) is None:
-                            contentDict[noteFullPath.split('/')[1]+'(%s).html'%fileNum] = contentDict[noteFullPath.split('/')[1]+'.html']
-                            contentDict[noteFullPath.split('/')[1]+'.html'] = self.ec.get_content(noteFullPath)
+                        if contentDict.get(noteFullPath[1]+'(%s).html'%fileNum) is None:
+                            contentDict[noteFullPath[1]+'(%s).html'%fileNum] = contentDict[noteFullPath[1]+'.html']
+                            contentDict[noteFullPath[1]+'.html'] = self.ec.get_content(noteFullPath)
                             break
                         else:
                             fileNum += 1
             self.ls.write_note(noteFullPath, contentDict)
         for noteFullPath, status in self.__get_changes(update):
             if status not in (-1, 0): continue
-            if '/' in noteFullPath:
+            if 1 < len(noteFullPath):
                 _download_note(noteFullPath)
             else:
-                notes = noteDict.get(noteFullPath)
+                notes = noteDict.get(noteFullPath[0])
                 if notes is None:
                     self.ls.write_note(noteFullPath, {}) # delete folder
                 else:
                     self.ls.write_note(noteFullPath, {1}) # create folder
-                    for note in notes: _download_note(noteFullPath+'/'+note[0])
+                    for note in notes: _download_note(noteFullPath + [note[0]])
         self.ls.update_config(lastUpdate = time.time() + 1)
         return True
     def upload_files(self, update = True):
@@ -128,8 +128,8 @@ class Controller(object):
                     content = 'Upload encode failed, I\'m sorry! Please contact i7meavnktqegm1b@qq.com with this file.'
             return content
         def _upload_files(noteFullPath, attachmentDict):
-            print(('Uploading '+noteFullPath).decode('utf8'))
-            nbName, nName = noteFullPath.split('/')
+            print(('Uploading '+'/'.join(noteFullPath)).decode('utf8'))
+            nbName, nName = noteFullPath
             if not attachmentDict:
                 self.ec.delete_note(noteFullPath)
             elif nName + '.md' in attachmentDict.keys():
@@ -140,20 +140,20 @@ class Controller(object):
                 self.ec.update_note(noteFullPath, content, attachmentDict)
         for noteFullPath, status in self.__get_changes(update):
             if status not in (1, 0): continue
-            if '/' in noteFullPath:
+            if 1 < len(noteFullPath):
                 attachmentDict = self.ls.read_note(noteFullPath)
                 _upload_files(noteFullPath, attachmentDict)
             else:
-                lns = self.ls.get_file_dict().get(noteFullPath)
-                ens = self.es.get_note_dict().get(noteFullPath)
+                lns = self.ls.get_file_dict().get(noteFullPath[0])
+                ens = self.es.get_note_dict().get(noteFullPath[0])
                 if lns is None:
-                    for note in ens or []: self.ec.delete_note(noteFullPath+'/'+note[0])
+                    for note in ens or []: self.ec.delete_note(noteFullPath + [note[0]])
                     self.ec.delete_notebook(noteFullPath)
                 else:
                     self.ec.create_notebook(noteFullPath)
                     for note in lns:
-                        attachmentDict = self.ls.read_note(noteFullPath+'/'+note[0])
-                        _upload_files(noteFullPath+'/'+note[0], attachmentDict)
+                        attachmentDict = self.ls.read_note(noteFullPath + [note[0]])
+                        _upload_files(noteFullPath + [note[0]], attachmentDict)
         self.ls.update_config(lastUpdate = time.time() + 1)
         return True
 def convert_html(htmlDir, force = None):

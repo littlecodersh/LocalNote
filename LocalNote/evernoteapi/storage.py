@@ -34,38 +34,37 @@ class Storage():
         self.defaultNotebook = noteStore.getDefaultNotebook(token).name
     def create_note(self, note, notebookName = None):
         if notebookName is None: notebookName = self.defaultNotebook
+        if self.get(notebookName) is None: return False
         self.storage[notebookName]['notes'][note.title] = note
         return True
     def create_notebook(self, notebook):
-        if self.storage.get(notebook.name) is None: return False
+        if self.get(notebook.name) is not None: return False
         self.storage[notebook.name] = {}
         self.storage[notebook.name]['notebook'] = notebook
         self.storage[notebook.name]['notes'] = {}
         return True
-    def copy_note(self, fullNotePath, _to = None):
+    def copy_note(self, noteFullPath, _to = None):
         if _to is None: _to = self.defaultNotebook
-        note = self.get(fullNotePath)
-        if note is None: return False
+        note = self.get(noteFullPath)
+        if len(noteFullPath) < 2 or note is None: return False
         self.storage[_to]['notes'][note.title] = note
         return True
-    def move_note(self, fullNotePath, _to = None):
-        r = self.copy_note(fullNotePath, _to)
+    def move_note(self, noteFullPath, _to = None):
+        r = self.copy_note(noteFullPath, _to)
         if r == False: return False
-        del self.storage[fullNotePath.split('/')[0]]['notes'][note.title]
+        return self.delete_note(noteFullPath)
+    def delete_note(self, noteFullPath):
+        if self.get(noteFullPath) is None: return False
+        del self.storage[noteFullPath[0]]['notes'][noteFullPath[1]]
         return True
-    def delete_note(self, fullNotePath):
-        if self.get(fullNotePath) is None: return False
-        del self.storage[fullNotePath.split('/')[0]]['notes'][fullNotePath.split('/')[1]]
+    def delete_notebook(self, noteFullPath):
+        if self.get(noteFullPath) is None: return False
+        del self.storage[noteFullPath[0]]
         return True
-    def delete_notebook(self, notebook):
-        if self.get(notebook) is None: return False
-        del self.storage[notebook]
-        return True
-    def get(self, s):
-        f = s.split('/')
-        r = self.storage.get(f[0])
+    def get(self, l):
+        r = self.storage.get(l[0])
         if r is None: return
-        if '/' in s: return r['notes'].get(f[1])
+        if 1 < len(l): return r['notes'].get(l[1])
         return r.get('notebook')
     def get_note_dict(self):
         noteDict = {}
