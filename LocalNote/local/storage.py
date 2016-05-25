@@ -59,7 +59,7 @@ class Storage(object):
             for postfix in ('.md', '.html'):
                 fName = noteFullPath[-1] + postfix
                 if self.__str_c2l(fName) in fileList:
-                    with open(self.__str_c2l(join(noteFullPath)) + postfix) as f:
+                    with open(self.__str_c2l(join(*noteFullPath)) + postfix, 'rb') as f:
                         attachmentDict[fName] = f.read()
         return attachmentDict
     def write_note(self, noteFullPath, contentDict = {}):

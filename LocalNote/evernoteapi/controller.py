@@ -41,7 +41,7 @@ class EvernoteController(object):
                 raise e
         self.storage.create_notebook(notebook)
         return True
-    def create_note(self, noteFullPath, content = None, fileDict = {}):
+    def create_note(self, noteFullPath, content = '', fileDict = {}):
         if self.get(noteFullPath): return False
         if 1 < len(noteFullPath):
             notebook = noteFullPath[0]
@@ -54,9 +54,9 @@ class EvernoteController(object):
         note.content = '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">'
         note.content += '<en-note>'
         content = re.sub('<en-media.*?/>', '', content)
-        note.content += content or ''
-        if self.get(notebook) is None: self.create_notebook(notebook)
-        note.notebookGuid = self.get(notebook).guid
+        note.content += content
+        if self.get([notebook]) is None: self.create_notebook(notebook)
+        note.notebookGuid = self.get([notebook]).guid
         if fileDict:
             note.resources = []
             for fileName, fileBytes in fileDict.iteritems():
@@ -87,15 +87,16 @@ class EvernoteController(object):
             notebook = self.storage.defaultNotebook
             title = noteFullPath[0]
         oldContent = self.get_content(noteFullPath)
+        content = content or oldContent
         header = '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">'
         guid = note.guid
-        oldContent = re.sub('<en-media.*?/>', '', oldContent)
+        content = re.sub('<en-media.*?/>', '', content)
         note = Types.Note()
         note.guid = guid
         note.title = title
         note.content = header
         note.content += '<en-note>'
-        note.content += content or oldContent
+        note.content += content
         if fileDict:
             note.resources = []
             for fileName, fileBytes in fileDict.iteritems():

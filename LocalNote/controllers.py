@@ -137,6 +137,7 @@ class Controller(object):
                 self.ec.update_note(noteFullPath, markdown(content).encode('utf8'), attachmentDict)
             elif nName + '.html' in attachmentDict.keys():
                 content = encode_content(attachmentDict[nName+'.html'])
+                del attachmentDict[nName + '.html']
                 self.ec.update_note(noteFullPath, content, attachmentDict)
         for noteFullPath, status in self.__get_changes(update):
             if status not in (1, 0): continue
@@ -150,7 +151,7 @@ class Controller(object):
                     for note in ens or []: self.ec.delete_note(noteFullPath + [note[0]])
                     self.ec.delete_notebook(noteFullPath)
                 else:
-                    self.ec.create_notebook(noteFullPath)
+                    self.ec.create_notebook(noteFullPath[0])
                     for note in lns:
                         attachmentDict = self.ls.read_note(noteFullPath + [note[0]])
                         _upload_files(noteFullPath + [note[0]], attachmentDict)
