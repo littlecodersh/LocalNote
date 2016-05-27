@@ -123,7 +123,7 @@ class EvernoteController(object):
         if note is None: return
         r = self.noteStore.getNoteContent(note.guid)
         try:
-            content = re.compile('[\s\S]*?<en-note>([\s\S]*?)</en-note>').findall(r)[0]
+            content = re.compile('[\s\S]*?<en-note[^>]*?>([\s\S]*?)</en-note>').findall(r)[0]
         except:
             content = ''
         return content
@@ -174,16 +174,3 @@ if __name__ == '__main__':
     e = EvernoteController(token, True, True)
     # e.update_note('Hello', 'Test', 'Changed', 'README.md')
     e.create_note(['Test', '中文'], 'Chinese')
-
-if False:
-    e.create_notebook(['Notebook1'])
-    e.create_note(['Notebook1', 'Hello'], '<en-note>Hello, world!</en-note>')
-    e.create_notebook('Notebook2')
-    e.show_notes()
-    e.move_note(['Notebook1', 'Hello'], ['Notebook2'])
-    e.show_notes()
-    e.delete_note(['Notebook2', 'Hello'])
-    # deleting notebook can only be available when you use developer token for you own evernote
-    e.delete_notebook(['Notebook1'])
-    e.delete_notebook(['Notebook2'])
-    e.show_notes()

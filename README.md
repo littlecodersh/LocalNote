@@ -1,4 +1,6 @@
-# LocalNote [![Gitter](https://badges.gitter.im/littlecodersh/LocalNote.svg)](https://gitter.im/littlecodersh/LocalNote?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) ![python](https://img.shields.io/badge/python-2.7-ff69b4.svg)
+# LocalNote
+
+[![Gitter](https://badges.gitter.im/littlecodersh/LocalNote.svg)](https://gitter.im/littlecodersh/LocalNote?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) ![python](https://img.shields.io/badge/python-2.7-ff69b4.svg) [English Version](https://github.com/littlecodersh/LocalNote/blob/master/README_EN.md)
 
 LocalNote让你能够像使用本地文件一样使用印象笔记。
 
@@ -57,6 +59,20 @@ Root
             打包笔记.txt
     空笔记本
 ```
+
+# FAQ
+
+Q: 在使用时抛出了`errorCode=19`的异常，没有办法使用，怎么办？
+
+A: 这是你的账号每小时操作次数限制到了，等待一个小时再使用即可。完整异常为：`evernote.edam.error.ttypes.EDAMSystemException: EDAMSystemException(errorCode=19, rateLimitDuration=1039, _message=None)`
+
+Q: 第一次使用需要下载很久么？
+
+A: 取决于你笔记中内容的多少，一般下载速度为200k/s。
+
+Q: 本地如何预览markdown格式内容？
+
+A: 建议添加浏览器插件，即可即时预览。例如Chrome的[Markdown Preview Plus](https://chrome.google.com/webstore/detail/markdown-preview-plus/febilkbfcbhebfnokafefeacimjdckgl)。
 
 # Comments
 

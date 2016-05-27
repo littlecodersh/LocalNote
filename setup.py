@@ -16,7 +16,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='LocalNote',
 
-    version='1.0.4',
+    version='1.0.5',
 
     description='LocalNote让你能够像使用本地文件一样使用印象笔记，支持markdown语法。Use your evernote like local file system in all platforms (markdown supported)',
 
@@ -46,7 +46,7 @@ setup(
     # simple. Or you can use find_packages().
     packages=find_packages(),
 
-    install_requires=['requests', 'markdown', 'evernote', 'chardet', 'html2text'],
+    install_requires=['requests', 'markdown', 'evernote', 'chardet', 'html2text', 'lxml'],
 
     # List additional groups of dependencies here
     extras_require={},

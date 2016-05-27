@@ -1,21 +1,23 @@
-LocalNote |Gitter| |Python27|
-=============================
+LocalNote
+=========
 
-LocalNote让你能够像使用本地文件一样使用印象笔记。
+|Gitter| |Python27| `Chinese Version <https://github.com/littlecodersh/LocalNote/blob/master/README.md>`__
 
-支持流行的markdown格式的笔记，印象笔记中完美显示，上传重新下载笔记仍可编辑。
+LocalNote enables you to use evernote in the local-file way.
 
-支持印象笔记原笔记格式转化为markdown格式，轻松开始使用。
+Popular markdown format is supported and can be perfectly shown in evernote while raw markdown format is well stored.
 
-三平台支持，在linux平台也流畅的使用印象笔记。
+Oridinary note of evernote can also be translated into markdown format easily.
 
-欢迎在 `Github <https://github.com/littlecodersh/LocalNote>`__ 参与项目，提交反馈。
+Available on three platforms, linux users can have a better way to use evernote.
+
+You are welcomed to join this project on `Github <https://github.com/littlecodersh/LocalNote>`__.
 
 **Screenshot**
 
 |GifDemo|
 
-视频见 `这里 <http://v.youku.com/v_show/id_XMTU3Nzc5NzU1Ng==>`__
+Video is `here <http://v.youku.com/v_show/id_XMTU3Nzc5NzU1Ng==>`__.
 
 **Installation**
 
@@ -25,48 +27,62 @@ LocalNote让你能够像使用本地文件一样使用印象笔记。
 
 **Usage**
 
-常用命令
+Commonly used commands
 
 .. code:: bash
 
-    # 初始化印象笔记目录，请在空文件夹使用
+    # initialize the root folder, please use this in an empty folder
     localnote init
-    # 下载笔记
+    # download your notes from your evernote to your computer
     localnote pull
-    # 查看云端及本地笔记更改
+    # show the difference between your local notes and online notes
     localnote status
-    # 上传本地笔记
+    # upload your notes from your computer to your evernote
     localnote push
-    # 将html转化为md格式
+    # translate html documents into markdown formats
     localnote convert 需要转换的文件.html
 
-存储格式
+Storage format
 
-- 根目录下每个文件夹对应一个笔记本
-- 笔记本文件夹中每个文件（文件夹）对应一个笔记
-- 笔记可以仅存在主文件也可以以文件夹的形式包含附件
-- 笔记主文件必须是`.md`或者`.html`格式，文件名（不包括后缀）将会被用作笔记名
+- A folder in the root folder means a notebook
+- A document, folder as well, in notebook folder means a note
+- A note can contain main document only or have attachments in any format.
+- Main document of a note must be a `.md` or `.html` file, its file name will be used as note name.
 
 示例文件树
 
 ::
 
     Root
-        我的默认笔记本
-            第一个笔记.html
-            第二个笔记.html
-        附件笔记本
-            第三个笔记
-                第三个笔记.md
-                打包材料.zip
-                打包笔记.txt
-        空笔记本
+        My default notebook 
+            My first notebook.html
+            My second notebook.html
+        Attachment notebook
+            My third notebook
+                My third notebook.md
+                Packed documents.zip
+                Note of packing.txt
+        Empty notebook
+
+**FAQ**
+
+Q: I have an error `errorCode=19`, how should I deal with it?
+
+A: This is the hourly limit of evernote, you just need to wait for an hour. The whole Exception is `evernote.edam.error.ttypes.EDAMSystemException: EDAMSystemException(errorCode=19, rateLimitDuration=1039, _message=None)`
+
+Q: Will the first pull take a long time?
+
+A: It depands how big your files are, the downloading speed is about 200k/s.
+
+Q: How to preview markdown files locally?
+
+A: You need a web browser plugin. Take Chrom for example, it's `Markdown Preview Plus <https://chrome.google.com/webstore/detail/markdown-preview-plus/febilkbfcbhebfnokafefeacimjdckgl>`__.
 
 **Comments**
 
-如果有什么问题或者建议都可以在这个 `Issue <https://github.com/littlecodersh/LocalNote/issues/1>`__ 和我讨论。
+If you have any question or suggestion, you can discuss with me in this `Issue <https://github.com/littlecodersh/LocalNote/issues/1>`__ .
 
-或者也可以在gitter上交流： |Gitter|
+Or you may contact me on gitter: |Gitter|
 
 .. |Python27| image:: https://img.shields.io/badge/python-2.7-ff69b4.svg
 .. |Gitter| image:: https://badges.gitter.im/littlecodersh/LocalNote.svg
