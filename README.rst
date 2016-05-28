@@ -5,11 +5,11 @@ LocalNote
 
 LocalNote enables you to use evernote in the local-file way.
 
-Popular markdown format is supported and can be perfectly shown in evernote while raw markdown format is well stored.
+Popular markdown format is supported and can be perfectly performed in evernote (the download format will remain as .md instead of .html).
 
-Oridinary note of evernote can also be translated into markdown format easily.
+Majority of notes in evernote can also be translated into markdown format easily.
 
-Available on three platforms, linux users can have a better way to use evernote.
+LocalNote is also available on three platforms, which ensure that linux users can also have a good experience with evernote.
 
 You are welcomed to join this project on `Github <https://github.com/littlecodersh/LocalNote>`__.
 
@@ -40,7 +40,7 @@ Commonly used commands
     # upload your notes from your computer to your evernote
     localnote push
     # translate html documents into markdown formats
-    localnote convert 需要转换的文件.html
+    localnote convert file_need_convert.html
 
 Storage format
 
@@ -49,7 +49,7 @@ Storage format
 - A note can contain main document only or have attachments in any format.
 - Main document of a note must be a `.md` or `.html` file, its file name will be used as note name.
 
-示例文件树
+Example file tree
 
 ::
 
@@ -68,7 +68,7 @@ Storage format
 
 Q: I have an error `errorCode=19`, how should I deal with it?
 
-A: This is the hourly limit of evernote, you just need to wait for an hour. The whole Exception is `evernote.edam.error.ttypes.EDAMSystemException: EDAMSystemException(errorCode=19, rateLimitDuration=1039, _message=None)`
+A: This is the hourly limit of evernote, you just need to wait for an hour. The whole Exception is `evernote.edam.error.ttypes.EDAMSystemException: EDAMSystemException(errorCode=19, rateLimitDuration=1039, _message=None)`. Login will also be limited in the hour, so warning about not loged in will be shown.
 
 Q: Will the first pull take a long time?
 

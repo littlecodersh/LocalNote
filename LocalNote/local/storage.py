@@ -115,7 +115,7 @@ class Storage(object):
             fileDict[nbNameUtf8] = []
             for nName in reduce(lambda x,y: x+y, os.walk(nbName).next()[1:]): # get folders and files
                 filePath = join(nbName, nName)
-                if os.path.isdir(nName):
+                if os.path.isdir(filePath):
                     fileDict[nbNameUtf8].append((self.__str_l2c(nName), os.stat(filePath).st_mtime))
                 else:
                     fileDict[nbNameUtf8].append((self.__str_l2c(os.path.splitext(nName)[0]), os.stat(filePath).st_mtime))

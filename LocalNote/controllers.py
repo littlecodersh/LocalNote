@@ -57,12 +57,12 @@ class Controller(object):
                 for i, eNote in enumerate(eNotes):
                     if lNote[0] != eNote[0]: continue
                     if self.ls.lastUpdate < lNote[1]: # need upload
-                        if self.ls.lastUpdate < eNote[1]: # need download
+                        if self.ls.lastUpdate < eNote[1] and lNote[1] < eNote[1]: # need download
                             r.append(([nbName, lNote[0]], 0))
                         else:
                             r.append(([nbName, lNote[0]], 1))
                     else:
-                        if self.ls.lastUpdate < eNote[1]:
+                        if self.ls.lastUpdate < eNote[1] and lNote[1] < eNote[1]:
                             r.append(([nbName, lNote[0]], -1))
                         # else:
                             # debug
@@ -84,7 +84,11 @@ class Controller(object):
     def download_notes(self, update = True):
         if not self.available: return False
         noteDict = self.es.get_note_dict()
+        invalidNoteList = []
         def _download_note(noteFullPath):
+            if any(c in ''.join(noteFullPath).decode('utf8') for c in u'\\/:*?"<>|\xa0'):
+                invalidNoteList.append(noteFullPath)
+                return
             print(('Downloading '+'/'.join(noteFullPath)).decode('utf8'))
             if self.es.get(noteFullPath) is None: # delete note if is deleted online
                 self.ls.write_note(noteFullPath, {})
@@ -104,8 +108,12 @@ class Controller(object):
                             fileNum += 1
             self.ls.write_note(noteFullPath, contentDict)
         for noteFullPath, status in self.__get_changes(update):
-            if status not in (-1, 0): continue
-            if 1 < len(noteFullPath):
+            if status not in (-1, 0):
+                continue
+            elif any(c in ''.join(noteFullPath).decode('utf8') for c in u'\\/:*?"<>|\xa0'):
+                invalidNoteList.append(noteFullPath)
+                continue
+            elif 1 < len(noteFullPath):
                 _download_note(noteFullPath)
             else:
                 notes = noteDict.get(noteFullPath[0])
@@ -115,7 +123,7 @@ class Controller(object):
                     self.ls.write_note(noteFullPath, {1}) # create folder
                     for note in notes: _download_note(noteFullPath + [note[0]])
         self.ls.update_config(lastUpdate = time.time() + 1)
-        return True
+        return invalidNoteList or True
     def upload_files(self, update = True):
         if not self.available: return False
         def encode_content(content):

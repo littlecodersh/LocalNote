@@ -5,8 +5,9 @@ from StringIO import StringIO
 from markdown import markdown as md
 from html2text import html2text as h2t
 
-with open('enml2.dtd') as f: dtd = f.read()
-dtd = etree.DTD(StringIO(dtd))
+from enml2_dtd import data
+
+dtd = etree.DTD(StringIO(data))
 
 def markdown(s):
     s = md(s, extensions=['markdown.extensions.fenced_code', 'markdown.extensions.tables'])
@@ -21,5 +22,6 @@ def html2text(s):
 def check_dtd(s):
     return dtd.validate(etree.XML(s))
 
-print check_dtd('<b><a/></b>')
-print check_dtd('<code class="Python"></code>')
+if __name__ == '__main__':
+    print check_dtd('<b><a/></b>')
+    print check_dtd('<code class="Python"></code>')

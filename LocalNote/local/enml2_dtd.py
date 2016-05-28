@@ -1,4 +1,4 @@
-<!--
+data = '''<!--
 
    Evernote Markup Language (ENML) 2.0 DTD
    
@@ -1120,3 +1120,4 @@
 <!ATTLIST var
   %attrs;
   >
+'''

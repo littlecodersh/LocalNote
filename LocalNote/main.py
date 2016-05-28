@@ -7,7 +7,7 @@ from evernoteapi.oauth2 import Oauth
 DEBUG = True
 
 def sys_print(s, level = 'info'):
-    print(('[%-4s] %s'%((level+' '*4)[:4].upper(), s)).encode(sys.stdin.encoding))
+    print(('[%-4s] %s'%((level+' '*4)[:4].upper(), s.replace(u'\xa0', ' '))).encode(sys.stdin.encoding))
 def sys_input(s):
     return raw_input(s.encode(sys.stdin.encoding))
 def check_files_format(fn):
@@ -89,10 +89,13 @@ def pull(mainController, *args):
     mainController.fetch_notes()
     # show changes
     for change in mainController.get_changes():
-        if change[1] in (-1, 0, 1): sys_print('/'.join(change[0]).decode('utf8'), 'pull')
+        if change[1] in (-1, 0): sys_print('/'.join(change[0]).decode('utf8'), 'pull')
     # confirm
     if sys_input(u'是否更新本地文件？[yn] ') == 'y':
-        mainController.download_notes(False)
+        r = mainController.download_notes(False)
+        if isinstance(r, list):
+            sys_print(u'为存储到本地，请确保笔记名字中没有特殊字符“\\/:*?"<>|”或特殊的不可见字符')
+            for noteFullPath in r: sys_print('/'.join(noteFullPath).decode('utf8'))
     print('Bye~')
 @check_files_format
 def push(mainController, *args):
