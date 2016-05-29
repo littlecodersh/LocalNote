@@ -3,6 +3,7 @@ import sys, os, json, time
 
 from controllers import Controller, convert_html
 from evernoteapi.oauth2 import Oauth
+from local import clear_dir
 
 DEBUG = True
 
@@ -36,18 +37,12 @@ def show_help(*args):
         print('%-10s: %s'%(fn, h[1].decode('utf8').encode(sys.stdin.encoding)))
 def init(*args):
     mainController = Controller()
-    def clear_dir():
+    def clear_root():
         if sys_input(u'初始化目录将会清除目录下所有文件，是否继续？[yn] ') != 'y': return False
-        def _clear_dir(currentDir):
-            dirs, files = os.walk(currentDir).next()[1:]
-            for d in dirs:
-                _clear_dir(os.path.join(currentDir, d))
-                os.rmdir(os.path.join(currentDir, d))
-            for f in files: os.remove(os.path.join(currentDir, f))
-        _clear_dir('.')
+        clear_dir('.')
         return True
     def _init(*args):
-        if not reduce(lambda x,y: x+y, [l for l in os.walk('.').next()[1:]]) or clear_dir():
+        if not reduce(lambda x,y: x+y, [l for l in os.walk('.').next()[1:]]) or clear_root():
             sys_print(u'账户仅需要在第一次使用时设置一次')
             while 1:
                 sandbox = sys_input(u'是否是沙盒环境？[yn] ') == 'y'

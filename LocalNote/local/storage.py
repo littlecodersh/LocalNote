@@ -70,8 +70,7 @@ class Storage(object):
                 for postfix in ('.md', '.html'):
                     if exists(join(nbName, nName+postfix)): os.remove(join(nbName, nName+postfix))
                 if exists(join(nbName, nName)):
-                    for fName in os.walk(join(nbName, nName)).next()[2]:
-                        os.remove(join(nbName, nName, fName))
+                    clear_dir(join(nbName, nName))
                     os.rmdir(join(nbName, nName))
             else:
                 os.mkdir(nbName)
@@ -91,12 +90,7 @@ class Storage(object):
             else: # delete folder
                 noteFullPath = self.__str_c2l(noteFullPath[0])
                 if exists(noteFullPath):
-                    for fName in os.walk(noteFullPath).next()[2]:
-                        os.remove(join(noteFullPath, fName))
-                    for fName in os.walk(noteFullPath).next()[1]:
-                        for dName in os.walk(noteFullPath, fName).next()[2]:
-                            os.remove(join(noteFullPath, fName, dName))
-                        os.rmdir(join(noteFullPath, fName))
+                    clear_dir(noteFullPath)
                     os.rmdir(noteFullPath)
     def write_file(self, noteFullPath, content, postfix = '.md'):
         if len(noteFullPath) < 1: return False
@@ -153,3 +147,10 @@ class Storage(object):
                 if self.maxUpload < size:
                     r.append((self.__str_l2c(join(notebook, folderNote)), 2))
         return True, r
+
+def clear_dir(currentDir):
+    dirs, files = os.walk(currentDir).next()[1:]
+    for d in dirs:
+        clear_dir(os.path.join(currentDir, d))
+        os.rmdir(os.path.join(currentDir, d))
+    for f in files: os.remove(os.path.join(currentDir, f))
