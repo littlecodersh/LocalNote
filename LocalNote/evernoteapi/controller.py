@@ -9,7 +9,7 @@ from evernote.api.client import EvernoteClient
 from storage import Storage
 
 class EvernoteController(object):
-    def __init__(self, token, isSpecialToken = False, sandbox = False, isInternational = False):
+    def __init__(self, token, isSpecialToken = False, sandbox = False, isInternational = False, notebooks = None):
         self.token = token
         if sandbox:
             self.client = EvernoteClient(token=self.token)
@@ -20,7 +20,7 @@ class EvernoteController(object):
         self.isSpecialToken = isSpecialToken
         self.userStore = self.client.get_user_store()
         self.noteStore = self.client.get_note_store()
-        self.storage = Storage()
+        self.storage = Storage(notebooks)
     def get_upload_limit(self):
         return {
             1: 25 * 1024 * 1024,

@@ -16,31 +16,38 @@ CONFIG_DIR = 'user.cfg'
 class Storage(object):
     def __init__(self, maxUpload = 0):
         self.maxUpload = maxUpload
-        self.token, self.isSpecialToken, self.sandbox, self.isInternational, self.expireTime, self.lastUpdate = self.__load_config()
+        self.token, self.isSpecialToken, self.sandbox, self.isInternational, self.expireTime, self.lastUpdate, self.notebooks = self.__load_config()
         self.encoding = sys.stdin.encoding
     def __load_config(self):
-        if not exists(CONFIG_DIR): return '', False, True, False, 0, 0
+        if not exists(CONFIG_DIR): return '', False, True, False, 0, 0, None
         with open(CONFIG_DIR) as f: r = json.loads(f.read())
-        return r.get('token', ''), r.get('is-special-token', False), r.get('sandbox', True), r.get('is-international', False), r.get('expire-time', 0), r.get('last-update', 0)
+        notebooks = r.get('notebooks')
+        if notebooks is not None: notebooks = [nb.encode('utf8') for nb in notebooks]
+        return (r.get('token', ''), r.get('is-special-token', False), r.get('sandbox', True),
+                r.get('is-international', False), r.get('expire-time', 0), r.get('last-update', 0), notebooks)
     def __store_config(self):
         with open(CONFIG_DIR, 'w') as f:
+            notebooks = self.notebooks
+            if notebooks is not None: notebooks = [nb.decode('utf8') for nb in notebooks]
             f.write(json.dumps({
                 'token': self.token,
                 'is-special-token': self.isSpecialToken,
                 'sandbox': self.sandbox,
                 'is-international': self.isInternational,
                 'expire-time': self.expireTime,
-                'last-update': self.lastUpdate, }))
-    def update_config(self, token=None, isSpecialToken=None, sandbox=None, isInternational=None, expireTime=None, lastUpdate=None):
+                'last-update': self.lastUpdate,
+                'notebooks': notebooks }))
+    def update_config(self, token=None, isSpecialToken=None, sandbox=None, isInternational=None, expireTime=None, lastUpdate=None, notebooks = None):
         if not token is None: self.token = token
         if not isSpecialToken is None: self.isSpecialToken = isSpecialToken
         if not sandbox is None: self.sandbox = sandbox
         if not isInternational is None: self.isInternational = isInternational
         if not expireTime is None: self.expireTime = expireTime
         if not lastUpdate is None: self.lastUpdate = lastUpdate
+        if not notebooks is None: self.notebooks = notebooks
         self.__store_config()
     def get_config(self):
-        return self.token, self.isSpecialToken, self.sandbox, self.isInternational, self.expireTime, self.lastUpdate
+        return self.token, self.isSpecialToken, self.sandbox, self.isInternational, self.expireTime, self.lastUpdate, self.notebooks
     def __str_c2l(self, s):
         return s.decode('utf8').encode(sys.stdin.encoding)
     def __str_l2c(self, s):
@@ -102,10 +109,11 @@ class Storage(object):
             return True
         except:
             return False
-    def get_file_dict(self):
+    def get_file_dict(self, notebooksList = None):
         fileDict = {}
         for nbName in os.walk('.').next()[1]: # get folders
             nbNameUtf8 = self.__str_l2c(nbName)
+            if notebooksList is not None and nbNameUtf8 not in notebooksList: continue
             fileDict[nbNameUtf8] = []
             for nName in reduce(lambda x,y: x+y, os.walk(nbName).next()[1:]): # get folders and files
                 filePath = join(nbName, nName)
@@ -117,9 +125,9 @@ class Storage(object):
     def check_files_format(self):
         try:
             with open('user.cfg') as f: j = json.loads(f.read())
-            if len(j) != 6: raise Exception
+            if len(j) != 7: raise Exception
             for k in j.keys():
-                if k not in ('token', 'is-special-token', 'sandbox',
+                if k not in ('token', 'is-special-token', 'sandbox', 'notebooks',
                         'is-international', 'expire-time', 'last-update'):
                     raise Exception
         except:

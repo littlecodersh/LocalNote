@@ -17,14 +17,16 @@ import evernote.edam.notestore.NoteStore as NoteStore
 
 class Storage():
     storage = {}
-    def __init__(self):
+    def __init__(self, notebooks = None):
         self.available = False
+        self.notebooks = notebooks
     def update(self, token, noteStore):
         f = NoteStore.NoteFilter()
         s = NoteStore.NotesMetadataResultSpec()
         s.includeTitle = True
         s.includeUpdated = True
         for nb in noteStore.listNotebooks():
+            if self.notebooks is not None and nb.name not in self.notebooks: continue
             self.storage[nb.name] = {}
             self.storage[nb.name]['notebook'] = nb
             self.storage[nb.name]['notes'] = {}

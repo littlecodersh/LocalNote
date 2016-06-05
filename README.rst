@@ -42,6 +42,15 @@ Commonly used commands
     # translate html documents into markdown formats
     localnote convert file_need_convert.html
 
+Patterns
+
+You may use your whole evernote with LocalNote, or choose the ones you like.
+
+.. code:: bash
+
+    # Set notebooks that sync with LocalNote
+    localnote notebook
+
 Storage format
 
 - A folder in the root folder means a notebook

@@ -4,23 +4,24 @@ import chardet
 
 from local import Storage as LocalStorage
 from local import html2text, markdown
-from evernoteapi.storage import Storage as EvernoteStorage
 from evernoteapi.controller import EvernoteController
 
 class Controller(object):
     def __init__(self):
-        self.es = EvernoteStorage()
         self.ls = LocalStorage()
-        self.token, self.isSpecialToken, self.sandbox, self.isInternational, self.expireTime, self.lastUpdate = self.ls.get_config()
+        self.token, self.isSpecialToken, self.sandbox, self.isInternational, self.expireTime, self.lastUpdate, self.notebooks = self.ls.get_config()
         self.available, self.ec = self.__check_available()
-        if self.available: self.ls.maxUpload = self.ec.get_upload_limit()
+        if self.available:
+            self.es = self.ec.storage
+            self.ls.maxUpload = self.ec.get_upload_limit()
         self.changesList = []
     def __check_available(self):
         if not self.isSpecialToken and self.expireTime < time.time(): return False, None
         if self.token == '': return False, None
         try:
-            ec = EvernoteController(self.token, self.isSpecialToken, self.sandbox, self.isInternational)
-            self.ls.update_config(self.token, self.isSpecialToken, self.sandbox, self.isInternational, self.expireTime, self.lastUpdate)
+            ec = EvernoteController(self.token, self.isSpecialToken, self.sandbox, self.isInternational, self.notebooks)
+            self.ls.update_config(self.token, self.isSpecialToken, self.sandbox, self.isInternational,
+                    self.expireTime, self.lastUpdate, self.notebooks)
             return True, ec
         except:
             return False, None
@@ -32,15 +33,17 @@ class Controller(object):
         if config.get('isInternational') is not None: self.isInternational = config.get('isInternational')
         if config.get('expireTime') is not None: self.expireTime = config.get('expireTime')
         if config.get('lastUpdate') is not None: self.lastUpdate = config.get('lastUpdate')
+        if config.get('notebooks') is not None: self.notebooks = config.get('notebooks')
         available, ec = self.__check_available()
         if available:
             self.available = True
             self.ec = ec
+            self.es = self.ec.storage
             self.ls.maxUpload = self.ec.get_upload_limit()
         return available
     def fetch_notes(self):
         if not self.available: return False
-        self.ec.storage.update(self.token, self.ec.noteStore)
+        self.es.update(self.token, self.ec.noteStore)
         return True
     def __get_changes(self, update = False): # -1 for need download, 1 for need upload, 0 for can be uploaded and downloaded
         if not update: return self.changesList # (fileFullPath, status)

@@ -10,7 +10,7 @@ DEBUG = True
 def sys_print(s, level = 'info'):
     print(('[%-4s] %s'%((level+' '*4)[:4].upper(), s.replace(u'\xa0', ' '))).encode(sys.stdin.encoding))
 def sys_input(s):
-    return raw_input(s.encode(sys.stdin.encoding))
+    return raw_input(s.encode(sys.stdin.encoding)).decode(sys.stdin.encoding)
 def check_files_format(fn):
     def _check_files_format(*args, **kwargs):
         mainController = Controller()
@@ -75,6 +75,22 @@ def init(*args):
         if sys_input(u'已经登录，是否要重新登录？[yn] ') == 'y': _init(*args)
     else:
         _init(*args)
+    print('Bye~')
+def notebook(*args):
+    mainController = Controller()
+    notebooks = []
+    sys_print(u'请输入使用的笔记本名字，留空结束')
+    while 1:
+        nb = sys_input(u'> ').encode('utf8')
+        if nb:
+            notebooks.append(nb)
+        else:
+            break
+    if notebooks:
+        mainController.ls.update_config(notebooks = notebooks)
+        sys_print(u'修改成功')
+    else:
+        sys_print(u'未修改')
     print('Bye~')
 @check_files_format
 def config(mainController, *args):
@@ -144,6 +160,7 @@ def convert(*args):
 argDict = {
     'help': (show_help, '显示帮助'),
     'init': (init, '登陆localnote'),
+    'notebook': (notebook, '设定使用指定的笔记本'),
     'config': (config, '查看已经登录的账户'),
     'pull': (pull, '下载云端笔记'),
     'push': (push, '上传本地笔记'),

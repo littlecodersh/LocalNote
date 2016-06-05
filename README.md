@@ -39,6 +39,15 @@ localnote push
 localnote convert 需要转换的文件.html
 ```
 
+## 使用模式
+
+你可以选择对整个印象笔记使用LocalNote，或者只有单一一个笔记本使用LocalNote
+
+```bash
+# 设定使用LocalNote的笔记本（全笔记本使用不设定即可）
+localnote notebook
+```
+
 ## 存储格式
 * 根目录下每个文件夹对应一个笔记本
 * 笔记本文件夹中每个文件（文件夹）对应一个笔记

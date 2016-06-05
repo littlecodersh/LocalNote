@@ -36,9 +36,17 @@ localnote status
 # upload your notes from your computer to your evernote
 localnote push
 # translate html documents into markdown formats
-localnote convert 需要转换的文件.html
+localnote convert File_Need_Convert.html
 ```
 
+## Patterns
+
+You may use your whole evernote with LocalNote, or choose the ones you like.
+
+```bash
+# Set notebooks that sync with LocalNote
+localnote notebook
+```
 ## Storage format
 * A folder in the root folder means a notebook
 * A document, folder as well, in notebook folder means a note

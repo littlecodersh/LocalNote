@@ -20,7 +20,8 @@ def html2text(s):
     return h2t(s)
 
 def check_dtd(s):
-    return dtd.validate(etree.XML(s))
+    return dtd.validate(etree.XML('<?xml version="1.0" encoding="UTF-8"?><en-note>'
+        + s.encode('utf8') + '</en-note>'))
 
 if __name__ == '__main__':
     print check_dtd('<b><a/></b>')
