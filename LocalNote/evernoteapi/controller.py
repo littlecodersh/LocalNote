@@ -14,7 +14,7 @@ class EvernoteController(object):
         if sandbox:
             self.client = EvernoteClient(token=self.token)
         elif isInternational:
-            self.client = EvernoteClient(token=self.token, service_host='app.evernote.com')
+            self.client = EvernoteClient(token=self.token, service_host='www.evernote.com')
         else:
             self.client = EvernoteClient(token=self.token, service_host='app.yinxiang.com')
         self.isSpecialToken = isSpecialToken

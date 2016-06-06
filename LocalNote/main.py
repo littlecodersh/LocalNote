@@ -45,14 +45,14 @@ def init(*args):
         if not reduce(lambda x,y: x+y, [l for l in os.walk('.').next()[1:]]) or clear_root():
             sys_print(u'账户仅需要在第一次使用时设置一次')
             while 1:
-                sandbox = sys_input(u'是否是沙盒环境？[yn] ') == 'y'
                 isInternational = False
                 expireTime = None
+                sandbox = sys_input(u'是否是沙盒环境？[yn] ') == 'y'
+                if not sandbox: isInternational = sys_input(u'是否是国际用户？[yn] ') == 'y'
                 isSpecialToken = sys_input(u'是否使用开发者Token？[yn] ') == 'y'
                 if isSpecialToken:
                     token = sys_input(u'开发者Token: ')
                 else:
-                    if not sandbox: isInternational = sys_input(u'是否是国际用户？[yn] ') == 'y'
                     token, expireTime = Oauth(sandbox = sandbox, isInternational = isInternational).oauth()
                     # Use special oauth to get token
                     isSpecialToken = True
