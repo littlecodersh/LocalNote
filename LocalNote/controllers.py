@@ -89,7 +89,8 @@ class Controller(object):
         noteDict = self.es.get_note_dict()
         invalidNoteList = []
         def _download_note(noteFullPath):
-            if any(c in ''.join(noteFullPath).decode('utf8') for c in u'\\/:*?"<>|\xa0'):
+            if (any(c in ''.join(noteFullPath).decode('utf8') for c in u'\\/:*?"<>|\xa0')
+                    or noteFullPath[1] == '.DS_Store'):
                 invalidNoteList.append(noteFullPath)
                 return
             print(('Downloading '+'/'.join(noteFullPath)).decode('utf8'))
@@ -113,7 +114,8 @@ class Controller(object):
         for noteFullPath, status in self.__get_changes(update):
             if status not in (-1, 0):
                 continue
-            elif any(c in ''.join(noteFullPath).decode('utf8') for c in u'\\/:*?"<>|\xa0'):
+            elif (any(c in ''.join(noteFullPath).decode('utf8') for c in u'\\/:*?"<>|\xa0')
+                    or noteFullPath[0] == '.DS_Store'):
                 invalidNoteList.append(noteFullPath)
                 continue
             elif 1 < len(noteFullPath):

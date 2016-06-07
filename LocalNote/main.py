@@ -6,7 +6,7 @@ from evernoteapi.oauth2 import Oauth
 from local import clear_dir
 from exception import main_wrapper
 
-DEBUG = True
+DEBUG = False
 
 def sys_print(s, level = 'info'):
     print(('[%-4s] %s'%((level+' '*4)[:4].upper(), s.replace(u'\xa0', ' '))).encode(sys.stdin.encoding))
@@ -27,7 +27,8 @@ def check_files_format(fn):
                         sys_print(u'检测到内容过大的文件：'+fileName.decode('utf8'), 'warn')
                     elif status == 3:
                         sys_print(u'检测到意义不明的文件：'+fileName.decode('utf8'), 'warn')
-                sys_print(u'请确保单条笔记有md或html的正文且不大于%s字节，笔记中没有文件夹格式的附件。'%mainController.ls.maxUpload, 'info')
+                sys_print(u'请确保单条笔记有md或html的正文且不大于%s字节'%mainController.ls.maxUpload)
+                sys_print(u'请确保没有文件夹格式的附件，或名为.DS_Store的笔记及笔记本。')
             else:
                 return fn(mainController, *args, **kwargs)
         else:
@@ -106,7 +107,8 @@ def pull(mainController, *args):
     if sys_input(u'是否更新本地文件？[yn] ') == 'y':
         r = mainController.download_notes(False)
         if isinstance(r, list):
-            sys_print(u'为存储到本地，请确保笔记名字中没有特殊字符“\\/:*?"<>|”或特殊的不可见字符')
+            sys_print(u'为存储到本地，请确保笔记名字中没有特殊字符“\\/:*?"<>|”或特殊不可见字符')
+            sys_print(u'为兼容Mac电脑，需要将名字为".DS_Store"的笔记本或笔记更名')
             for noteFullPath in r: sys_print('/'.join(noteFullPath).decode('utf8'))
     print('Bye~')
 @check_files_format

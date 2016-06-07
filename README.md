@@ -71,10 +71,6 @@ Root
 
 # FAQ
 
-Q: 在使用时抛出了`errorCode=19`的异常，没有办法使用，怎么办？
-
-A: 这是你的账号每小时操作次数限制到了，等待一个小时再使用即可。完整异常为：`evernote.edam.error.ttypes.EDAMSystemException: EDAMSystemException(errorCode=19, rateLimitDuration=1039, _message=None)`。在被限制期间登录也会受限，所以会提示尚未登录。
-
 Q: 第一次使用需要下载很久么？
 
 A: 取决于你笔记中内容的多少，一般下载速度为200k/s。

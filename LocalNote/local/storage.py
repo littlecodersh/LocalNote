@@ -114,8 +114,10 @@ class Storage(object):
         for nbName in os.walk('.').next()[1]: # get folders
             nbNameUtf8 = self.__str_l2c(nbName)
             if notebooksList is not None and nbNameUtf8 not in notebooksList: continue
+            if nbNameUtf8 == '.DS_Store': continue # Mac .DS_Store ignorance
             fileDict[nbNameUtf8] = []
             for nName in reduce(lambda x,y: x+y, os.walk(nbName).next()[1:]): # get folders and files
+                if nName == '.DS_Store': continue # Mac .DS_Store ignorance
                 filePath = join(nbName, nName)
                 if os.path.isdir(filePath):
                     fileDict[nbNameUtf8].append((self.__str_l2c(nName), os.stat(filePath).st_mtime))
@@ -135,20 +137,27 @@ class Storage(object):
         r = [] # (filename, status) 1 for wrong placement, 2 for too large, 3 for missing main file
         notebooks, notes = os.walk('.').next()[1:]
         for note in notes:
-            if note != 'user.cfg': r.append((self.__str_l2c(note), 1))
+            if note not in ('user.cfg', '.DS_Store'): r.append((self.__str_l2c(note), 1))
         for notebook in notebooks:
+            if notebook == '.DS_Store': # Mac .DS_Store ignorance
+                r.append(('.DS_Store', 1))
+                continue
             folderNotes, notes = os.walk(notebook).next()[1:]
             for note in notes:
+                if note == '.DS_Store': continue# Mac .DS_Store ignorance
                 if re.compile('.+\.(md|html)').match(note):
                     if self.maxUpload < os.path.getsize(join(notebook, note)):
                         r.append((self.__str_l2c(join(notebook, note)), 2))
                 else:
                     r.append((self.__str_l2c(join(notebook, note)), 3))
             for folderNote in folderNotes:
+                if folderNote == '.DS_Store':
+                    r.append((self.__str_l2c(join(notebook, folderNote)), 1))
+                    continue# Mac .DS_Store ignorance
                 size = 0
                 wrongFolders, attas = os.walk(join(notebook, folderNote)).next()[1:]
                 if filter(lambda x: re.compile('.+\.(md|html)').match(x), attas) == []:
-                    r.append((self.__str_l2c(join(notebook, folderNote), 3)))
+                    r.append((self.__str_l2c(join(notebook, folderNote)), 3))
                 for atta in attas: size += os.path.getsize(join(notebook, folderNote, atta))
                 for wrongFolder in wrongFolders:
                     r.append((self.__str_l2c(join(notebook, folderNote, wrongFolder)), 1))

@@ -70,10 +70,6 @@ Root
 
 # FAQ
 
-Q: I have an error `errorCode=19`, how should I deal with it?
-
-A: This is the hourly limit of evernote, you just need to wait for an hour. The whole Exception is `evernote.edam.error.ttypes.EDAMSystemException: EDAMSystemException(errorCode=19, rateLimitDuration=1039, _message=None)`. Login will also be limited in the hour, so warning about not loged in will be shown.
-
 Q: Will the first pull take a long time?
 
 A: It depands how big your files are, the downloading speed is about 200k/s.
