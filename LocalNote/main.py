@@ -4,6 +4,7 @@ import sys, os, json, time
 from controllers import Controller, convert_html
 from evernoteapi.oauth2 import Oauth
 from local import clear_dir
+from exception import main_wrapper
 
 DEBUG = True
 
@@ -171,7 +172,10 @@ argDict = {
 def main():
     del sys.argv[0]
     if not sys.argv: sys.argv.append('help')
-    argDict.get(sys.argv[0], (show_help,))[0](*sys.argv[1:])
+    @main_wrapper
+    def _main():
+        argDict.get(sys.argv[0], (show_help,))[0](*sys.argv[1:])
+    _main()
 
 if __name__ == '__main__':
     main()

@@ -16,7 +16,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='LocalNote',
 
-    version='1.0.10',
+    version='1.0.11',
 
     description='LocalNote让你能够像使用本地文件一样使用印象笔记，支持markdown语法。Use your evernote like local file system in all platforms (markdown supported)',
 
