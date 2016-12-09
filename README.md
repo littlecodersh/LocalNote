@@ -12,7 +12,7 @@ LocalNote让你能够像使用本地文件一样使用印象笔记。
 
 # Screenshot
 
-![](http://7xrip4.com1.z0.glb.clouddn.com/LocalNote%5CDemo_short.gif)
+![](http://7xrip4.com1.z0.glb.clouddn.com/LocalNote/localnote.gif)
 
 视频见[这里](http://v.youku.com/v_show/id_XMTU3Nzc5NzU1Ng==)
 

@@ -12,7 +12,7 @@ LocalNote is also available on three platforms, which ensure that linux users ca
 
 # Screenshot
 
-![](http://7xrip4.com1.z0.glb.clouddn.com/LocalNote%5CDemo_short.gif)
+![](http://7xrip4.com1.z0.glb.clouddn.com/LocalNote/localnote.gif)
 
 Video is [here](http://v.youku.com/v_show/id_XMTU3Nzc5NzU1Ng==)
 

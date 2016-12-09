@@ -92,4 +92,4 @@ Or you may contact me on gitter: |Gitter|
 .. |Python27| image:: https://img.shields.io/badge/python-2.7-ff69b4.svg
 .. |Gitter| image:: https://badges.gitter.im/littlecodersh/LocalNote.svg
     :target: https://github.com/littlecodersh/ItChat/tree/robot
-.. |GifDemo| image:: http://7xrip4.com1.z0.glb.clouddn.com/LocalNoteDemo.gif
+.. |GifDemo| image:: http://7xrip4.com1.z0.glb.clouddn.com/LocalNote/localnote.gif
