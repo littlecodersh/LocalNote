@@ -3,4 +3,4 @@ markdown==2.6.6
 evernote==1.25.1
 chardet==2.3.0
 html2text==2016.4.2
-lxml==3.6.0
+lxml==4.9.1
